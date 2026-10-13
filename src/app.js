@@ -84,6 +84,7 @@ function createApp(
     getToken: () => config.token,
     getUserAgent: () => buildUserAgent({ name, version, homepage }),
     fetch: fetchImpl,
+    onSkip: (parts) => logger.warn(`Not readable with this token, left out: ${parts.join(', ')}`),
   });
 
   /**

@@ -27,12 +27,15 @@ const MAX_REPOSITORIES = 20;
 // The newest items read per round: enough to report every issue, pull
 // request, release or commit of a busy repository between two rounds.
 const RECENT_COUNT = 5;
+// How many times a round runs again without the parts the token was refused.
+// GraphQL usually names every refused field at once: one retry is the rule.
+const MAX_SKIP_ATTEMPTS = 3;
 
 class GithubError extends Error {
   /**
    * @param {string} kind - auth | rate_limit | forbidden | server | network | invalid.
    * @param {string} message - The message.
-   * @param {object} [extra] - `{ status, resetAt }`.
+   * @param {object} [extra] - `{ status, resetAt, errors }`.
    */
   constructor(kind, message, extra = {}) {
     super(message);
@@ -40,10 +43,87 @@ class GithubError extends Error {
     this.kind = kind;
     this.status = extra.status ?? 0;
     this.resetAt = extra.resetAt ?? null;
+    // The GraphQL errors of a refused query, to find the parts to leave out.
+    this.errors = extra.errors ?? [];
   }
 }
 
-const REPOSITORY_FRAGMENT = `
+// The parts of the query a token may be refused, by name. A fine-grained
+// token answers "Resource not accessible by personal access token" (type
+// FORBIDDEN) for a field its permissions do not cover, and since the
+// `viewer` and most connections are non-null, GraphQL then nulls the whole
+// account or repository, or the whole answer. Such a part is left out of the
+// query from then on: its counters are not published, the rest still is.
+const REPOSITORY_PARTS = {
+  watchers: 'watchers { totalCount }',
+  openIssues: 'openIssues: issues(states: OPEN) { totalCount }',
+  openPullRequests: 'openPullRequests: pullRequests(states: OPEN) { totalCount }',
+  mergedPullRequests: 'mergedPullRequests: pullRequests(states: MERGED) { totalCount }',
+  discussions: `discussions(first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
+    totalCount
+    nodes { number title url createdAt author { login } }
+  }`,
+  latestIssues: `latestIssues: issues(first: ${RECENT_COUNT}, orderBy: { field: CREATED_AT, direction: DESC }) {
+    nodes { number title url createdAt author { login } }
+  }`,
+  latestPullRequests: `latestPullRequests: pullRequests(first: ${RECENT_COUNT}, orderBy: { field: CREATED_AT, direction: DESC }) {
+    nodes { number title url createdAt isDraft author { login } }
+  }`,
+  releases: `releases(first: ${RECENT_COUNT}, orderBy: { field: CREATED_AT, direction: DESC }) {
+    nodes {
+      databaseId name tagName url isDraft isPrerelease publishedAt createdAt
+      author { login }
+      releaseAssets(first: 50) { nodes { downloadCount } }
+    }
+  }`,
+  tags: `tags: refs(refPrefix: "refs/tags/", first: 1, orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
+    nodes {
+      name
+      target {
+        __typename
+        ... on Commit { url }
+        ... on Tag { target { ... on Commit { url } } }
+      }
+    }
+  }`,
+};
+
+// Inside the head commit of the default branch.
+const COMMIT_PARTS = {
+  statusCheckRollup: 'statusCheckRollup { state }',
+  history: `history(first: ${RECENT_COUNT}) {
+          nodes { oid abbreviatedOid messageHeadline url committedDate author { name user { login } } }
+        }`,
+};
+
+const VIEWER_PARTS = {
+  followers: 'followers { totalCount }',
+  following: 'following { totalCount }',
+  repositories: 'repositories(privacy: PUBLIC, ownerAffiliations: OWNER) { totalCount }',
+  gists: 'gists(privacy: PUBLIC) { totalCount }',
+};
+
+/**
+ * @description The parts not left out, one per line.
+ * @param {object} parts - Name -> selection.
+ * @param {string} scope - `repo`, `commit` or `viewer`.
+ * @param {Set<string>} skipped - `scope.name` keys left out.
+ * @returns {string} The selections.
+ */
+function select(parts, scope, skipped) {
+  return Object.entries(parts)
+    .filter(([name]) => !skipped.has(`${scope}.${name}`))
+    .map(([, selection]) => `  ${selection}`)
+    .join('\n');
+}
+
+/**
+ * @description The fragment read on every repository.
+ * @param {Set<string>} skipped - Parts left out.
+ * @returns {string} The fragment.
+ */
+function repositoryFragment(skipped) {
+  return `
 fragment repo on Repository {
   databaseId
   nameWithOwner
@@ -53,76 +133,86 @@ fragment repo on Repository {
   isPrivate
   stargazerCount
   forkCount
-  watchers { totalCount }
-  openIssues: issues(states: OPEN) { totalCount }
-  openPullRequests: pullRequests(states: OPEN) { totalCount }
-  mergedPullRequests: pullRequests(states: MERGED) { totalCount }
-  discussions(first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
-    totalCount
-    nodes { number title url createdAt author { login } }
-  }
-  latestIssues: issues(first: ${RECENT_COUNT}, orderBy: { field: CREATED_AT, direction: DESC }) {
-    nodes { number title url createdAt author { login } }
-  }
-  latestPullRequests: pullRequests(first: ${RECENT_COUNT}, orderBy: { field: CREATED_AT, direction: DESC }) {
-    nodes { number title url createdAt isDraft author { login } }
-  }
-  releases(first: ${RECENT_COUNT}, orderBy: { field: CREATED_AT, direction: DESC }) {
-    nodes {
-      databaseId name tagName url isDraft isPrerelease publishedAt createdAt
-      author { login }
-      releaseAssets(first: 50) { nodes { downloadCount } }
-    }
-  }
-  tags: refs(refPrefix: "refs/tags/", first: 1, orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
-    nodes {
-      name
-      target {
-        __typename
-        ... on Commit { url }
-        ... on Tag { target { ... on Commit { url } } }
-      }
-    }
-  }
+${select(REPOSITORY_PARTS, 'repo', skipped)}
   defaultBranchRef {
     name
     target {
       ... on Commit {
         oid
-        statusCheckRollup { state }
-        history(first: ${RECENT_COUNT}) {
-          nodes { oid abbreviatedOid messageHeadline url committedDate author { name user { login } } }
-        }
+${select(COMMIT_PARTS, 'commit', skipped)}
       }
     }
   }
 }`;
+}
 
-const VIEWER_SELECTION = `
+/**
+ * @description The account and quota selection.
+ * @param {Set<string>} skipped - Parts left out.
+ * @returns {string} The selection.
+ */
+function viewerSelection(skipped) {
+  return `
   viewer {
     databaseId login name url
-    followers { totalCount }
-    following { totalCount }
-    repositories(privacy: PUBLIC, ownerAffiliations: OWNER) { totalCount }
-    gists(privacy: PUBLIC) { totalCount }
+${select(VIEWER_PARTS, 'viewer', skipped)}
   }
   rateLimit { limit remaining resetAt }`;
+}
+
+/**
+ * @description The part an error of the answer points at, if it is one.
+ * @param {Array} path - The error path, e.g. `['r0', 'defaultBranchRef', 'target', 'statusCheckRollup']`.
+ * @returns {string|null} `scope.name`, null when the path names no optional part.
+ * @example
+ * partOf(['viewer', 'followers']); // -> 'viewer.followers'
+ */
+function partOf(path) {
+  if (!Array.isArray(path)) {
+    return null;
+  }
+  const [root, field, ...rest] = path.map(String);
+  if (root === 'viewer' && Object.hasOwn(VIEWER_PARTS, field)) {
+    return `viewer.${field}`;
+  }
+  if (!/^r\d+$/.test(root ?? '')) {
+    return null;
+  }
+  if (Object.hasOwn(REPOSITORY_PARTS, field)) {
+    return `repo.${field}`;
+  }
+  const inCommit = rest.find((name) => Object.hasOwn(COMMIT_PARTS, name));
+  return field === 'defaultBranchRef' && inCommit ? `commit.${inCommit}` : null;
+}
+
+/**
+ * @description Whether an error of the answer is a refusal of the token.
+ * @param {object} error - A GraphQL error.
+ * @returns {boolean} True for a field the token may not read.
+ */
+function isRefusal(error) {
+  return (
+    error?.type === 'FORBIDDEN' ||
+    /not accessible by (personal access token|integration)/i.test(String(error?.message ?? ''))
+  );
+}
 
 /**
  * @description The query reading the account and the given repositories.
  * @param {number} count - How many repositories.
+ * @param {Set<string>} [skipped] - Parts left out (see `partOf`).
  * @returns {string} The GraphQL document.
  * @example
  * buildQuery(2); // -> 'query Round($o0: String!, $n0: String!, …) { … }'
  */
-function buildQuery(count) {
+function buildQuery(count, skipped = new Set()) {
   const indexes = [...Array(count).keys()];
   const params = indexes.map((i) => `$o${i}: String!, $n${i}: String!`).join(', ');
   const aliases = indexes
     .map((i) => `  r${i}: repository(owner: $o${i}, name: $n${i}) { ...repo }`)
     .join('\n');
   const head = count > 0 ? `query Round(${params})` : 'query Round';
-  return `${head} {${VIEWER_SELECTION}\n${aliases}\n}${count > 0 ? REPOSITORY_FRAGMENT : ''}`;
+  return `${head} {${viewerSelection(skipped)}\n${aliases}\n}${count > 0 ? repositoryFragment(skipped) : ''}`;
 }
 
 /**
@@ -150,11 +240,21 @@ function buildVariables(repositories) {
  * @param {Function} options.getToken - `() => string`.
  * @param {Function} options.getUserAgent - `() => string`.
  * @param {Function} [options.fetch] - fetch implementation (tests).
+ * @param {Function} [options.onSkip] - `(parts: string[]) => void`, parts the token may not read.
  * @returns {{ round: Function }} The client.
  * @example
  * const github = createGithubClient({ getToken: () => token, getUserAgent: () => 'gladys-github' });
  */
-function createGithubClient({ getToken, getUserAgent, fetch = globalThis.fetch }) {
+function createGithubClient({
+  getToken,
+  getUserAgent,
+  fetch = globalThis.fetch,
+  onSkip = () => {},
+}) {
+  // Parts the current token may not read, forgotten when the token changes.
+  let skipped = new Set();
+  let skippedFor = null;
+
   /**
    * @description Run a GraphQL request.
    * @param {string} query - The document.
@@ -220,6 +320,7 @@ function createGithubClient({ getToken, getUserAgent, fetch = globalThis.fetch }
       const message = errors[0]?.message ?? `HTTP ${response.status}`;
       throw new GithubError('invalid', `GitHub refused the query: ${message}`, {
         status: response.status,
+        errors,
       });
     }
     return { data: body.data, errors };
@@ -234,12 +335,37 @@ function createGithubClient({ getToken, getUserAgent, fetch = globalThis.fetch }
    */
   async function round(repositories) {
     const list = repositories.slice(0, MAX_REPOSITORIES);
-    const { data, errors } = await graphql(buildQuery(list.length), buildVariables(list));
+    if (skippedFor !== getToken()) {
+      skipped = new Set();
+      skippedFor = getToken();
+    }
+    let answer;
+    // Each refused part costs one more request, once per token.
+    for (let attempt = 0; !answer; attempt += 1) {
+      let errors;
+      try {
+        answer = await graphql(buildQuery(list.length, skipped), buildVariables(list));
+        ({ errors } = answer);
+      } catch (err) {
+        if (!(err instanceof GithubError) || err.errors.length === 0) {
+          throw err;
+        }
+        ({ errors } = err);
+        if (attempt >= MAX_SKIP_ATTEMPTS || !skipRefused(errors)) {
+          throw err;
+        }
+        continue;
+      }
+      if (attempt < MAX_SKIP_ATTEMPTS && skipRefused(errors)) {
+        answer = null;
+      }
+    }
+    const { data, errors } = answer;
     const missing = new Map();
     errors.forEach((error) => {
       const alias = Array.isArray(error?.path) ? error.path[0] : null;
       const match = /^r(\d+)$/.exec(String(alias ?? ''));
-      if (match && list[Number(match[1])]) {
+      if (match && list[Number(match[1])] && !partOf(error.path)) {
         missing.set(list[Number(match[1])], error.type ?? 'ERROR');
       }
     });
@@ -249,6 +375,27 @@ function createGithubClient({ getToken, getUserAgent, fetch = globalThis.fetch }
       repositories: new Map(list.map((full, i) => [full, data[`r${i}`] ?? null])),
       missing,
     };
+  }
+
+  /**
+   * @description Leave out the parts the token was refused.
+   * @param {Array} errors - The GraphQL errors.
+   * @returns {boolean} True when a new part is left out (the query must run again).
+   */
+  function skipRefused(errors) {
+    const parts = [
+      ...new Set(
+        errors
+          .filter(isRefusal)
+          .map((error) => partOf(error.path))
+          .filter((part) => part && !skipped.has(part)),
+      ),
+    ];
+    parts.forEach((part) => skipped.add(part));
+    if (parts.length > 0) {
+      onSkip(parts);
+    }
+    return parts.length > 0;
   }
 
   return { round };
@@ -272,6 +419,7 @@ export {
   GithubError,
   buildQuery,
   buildVariables,
+  partOf,
   buildUserAgent,
   createGithubClient,
 };
