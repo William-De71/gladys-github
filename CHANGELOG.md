@@ -5,6 +5,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions
 follow [Semantic Versioning](https://semver.org/). This file is generated at
 each release from the Conventional Commits: do not edit it by hand.
 
+## [0.2.0] - 2026-10-13
+
+### Added
+
+- follow every repository of an account or organization with an owner/* pattern ([5a95886](https://github.com/William-De71/gladys-github/commit/5a95886374229bbc35746a5347de98af241220ab))
+
 ## [0.1.1] - 2026-10-13
 
 ### Fixed
@@ -23,5 +29,6 @@ each release from the Conventional Commits: do not edit it by hand.
 - Configuration with a personal access token (read-only access is enough), up to 20 repositories, a refresh interval from 60 seconds to 1 hour and a "Test the connection" button.
 - English, French, German and Spanish everywhere: settings, devices, widgets, scenes and documentation.
 
+[0.2.0]: https://github.com/William-De71/gladys-github/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/William-De71/gladys-github/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/William-De71/gladys-github/releases/tag/v0.1.0
