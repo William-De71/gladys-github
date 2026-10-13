@@ -391,11 +391,11 @@ test('pull request titles must read as a changelog line', () => {
 });
 
 test('the starter 0.1.0 section is dated at the first release, never regenerated', async () => {
-  // The project's own file is dated since 0.1.0 was released: its starter
-  // section is rebuilt from it, as it was before the first release.
-  const text = (await readFile(changelogPath, 'utf8'))
-    .replace(/^## \[0\.1\.0\] - .*$/m, '## [0.1.0] - unreleased')
-    .replace(/\n\[0\.1\.0\]: .*\n$/, '\n');
+  // The project's own file has moved on since 0.1.0 was released: the starter
+  // is rebuilt from its header and its 0.1.0 section, as it was before.
+  const file = await readFile(changelogPath, 'utf8');
+  const head = file.slice(0, file.indexOf('\n## [') + 1);
+  const text = `${head}## [0.1.0] - unreleased\n\n${releaseNotes(file, '0.1.0')}\n`;
   assert.match(text, /^## \[0\.1\.0\] - unreleased$/m, 'the starter section of the project');
   const release = {
     version: '0.1.0',
