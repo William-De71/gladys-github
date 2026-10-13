@@ -1,0 +1,543 @@
+{
+  "version": "0.1.0",
+  "devices": {
+    "repository": {
+      "external_id": "ext:github:repository:101",
+      "should_poll": false,
+      "params": ["GITHUB_REPOSITORY"],
+      "features": [
+        {
+          "external_id": "ext:github:repository:101:stars",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:forks",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:watchers",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:open_issues",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:open_pull_requests",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:merged_pull_requests",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:discussions",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:release_downloads",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:latest_release",
+          "category": "text",
+          "type": "text",
+          "min": 0,
+          "max": 0,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:latest_tag",
+          "category": "text",
+          "type": "text",
+          "min": 0,
+          "max": 0,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:latest_commit",
+          "category": "text",
+          "type": "text",
+          "min": 0,
+          "max": 0,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:latest_issue",
+          "category": "text",
+          "type": "text",
+          "min": 0,
+          "max": 0,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:latest_pull_request",
+          "category": "text",
+          "type": "text",
+          "min": 0,
+          "max": 0,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:repository:101:latest_discussion",
+          "category": "text",
+          "type": "text",
+          "min": 0,
+          "max": 0,
+          "read_only": true,
+          "has_feedback": false
+        }
+      ]
+    },
+    "account": {
+      "external_id": "ext:github:account:777",
+      "should_poll": false,
+      "params": ["GITHUB_LOGIN"],
+      "features": [
+        {
+          "external_id": "ext:github:account:777:followers",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:account:777:following",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:account:777:public_repositories",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        },
+        {
+          "external_id": "ext:github:account:777:public_gists",
+          "category": "counter-sensor",
+          "type": "integer",
+          "min": 0,
+          "max": 100000000,
+          "read_only": true,
+          "has_feedback": false
+        }
+      ]
+    }
+  },
+  "manifest": {
+    "config_schema": [
+      {
+        "key": "intro",
+        "type": "section"
+      },
+      {
+        "key": "token",
+        "type": "secret"
+      },
+      {
+        "key": "repositories_intro",
+        "type": "section"
+      },
+      {
+        "key": "repositories",
+        "type": "string"
+      },
+      {
+        "key": "poll_interval",
+        "type": "number"
+      },
+      {
+        "key": "language",
+        "type": "select"
+      }
+    ],
+    "scene_triggers": [
+      {
+        "key": "release_published",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          },
+          {
+            "key": "release_type",
+            "options": ["stable", "prerelease"]
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "name",
+            "type": "string"
+          },
+          {
+            "key": "tag",
+            "type": "string"
+          },
+          {
+            "key": "author",
+            "type": "string"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "key": "issue_opened",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "number",
+            "type": "number"
+          },
+          {
+            "key": "title",
+            "type": "string"
+          },
+          {
+            "key": "author",
+            "type": "string"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "key": "pull_request_opened",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "number",
+            "type": "number"
+          },
+          {
+            "key": "title",
+            "type": "string"
+          },
+          {
+            "key": "author",
+            "type": "string"
+          },
+          {
+            "key": "draft",
+            "type": "boolean"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "key": "discussion_created",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "number",
+            "type": "number"
+          },
+          {
+            "key": "title",
+            "type": "string"
+          },
+          {
+            "key": "author",
+            "type": "string"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "key": "commit_pushed",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "branch",
+            "type": "string"
+          },
+          {
+            "key": "sha",
+            "type": "string"
+          },
+          {
+            "key": "message",
+            "type": "string"
+          },
+          {
+            "key": "author",
+            "type": "string"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "key": "star_added",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "stars",
+            "type": "number"
+          },
+          {
+            "key": "added",
+            "type": "number"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "key": "checks_completed",
+        "fields": [
+          {
+            "key": "repository",
+            "options": []
+          },
+          {
+            "key": "state",
+            "options": ["success", "failure"]
+          }
+        ],
+        "variables": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "branch",
+            "type": "string"
+          },
+          {
+            "key": "sha",
+            "type": "string"
+          },
+          {
+            "key": "message",
+            "type": "string"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "scene_actions": [
+      {
+        "key": "get_repository",
+        "fields": ["repository"],
+        "outputs": [
+          {
+            "key": "repository_name",
+            "type": "string"
+          },
+          {
+            "key": "url",
+            "type": "string"
+          },
+          {
+            "key": "stars",
+            "type": "number"
+          },
+          {
+            "key": "forks",
+            "type": "number"
+          },
+          {
+            "key": "watchers",
+            "type": "number"
+          },
+          {
+            "key": "open_issues",
+            "type": "number"
+          },
+          {
+            "key": "open_pull_requests",
+            "type": "number"
+          },
+          {
+            "key": "latest_release",
+            "type": "string"
+          },
+          {
+            "key": "latest_release_url",
+            "type": "string"
+          },
+          {
+            "key": "latest_commit",
+            "type": "string"
+          },
+          {
+            "key": "checks",
+            "type": "string"
+          },
+          {
+            "key": "summary",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "widgets": [
+      {
+        "key": "repository",
+        "settings": ["repository"],
+        "options": {}
+      },
+      {
+        "key": "activity",
+        "settings": ["repository", "kind", "count"],
+        "options": {
+          "kind": ["all", "releases", "issues", "pull_requests", "commits"]
+        }
+      },
+      {
+        "key": "account",
+        "settings": [],
+        "options": {}
+      }
+    ]
+  }
+}

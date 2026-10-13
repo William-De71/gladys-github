@@ -1,0 +1,1434 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "GitHub",
+  "description": {
+    "en": "Follow GitHub repositories: releases, issues, stars, CI, scenes and widgets.",
+    "fr": "Suivez vos dépôts GitHub : versions, issues, étoiles, CI, scènes et widgets.",
+    "de": "GitHub-Repositorys verfolgen: Releases, Issues, Sterne, CI, Szenen und Widgets.",
+    "es": "Sigue repositorios de GitHub: versiones, issues, estrellas, CI, escenas y widgets."
+  },
+  "version": "0.1.0",
+  "docker_image": "ghcr.io/william-de71/gladys-github:0.1.0",
+  "gladys_version": ">=5.1.0",
+  "categories": ["services", "notifications"],
+  "cover_image": "https://raw.githubusercontent.com/William-De71/gladys-github/main/cover.jpg",
+  "transports": ["cloud"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "GitHub access",
+        "fr": "Accès à GitHub",
+        "de": "Zugriff auf GitHub",
+        "es": "Acceso a GitHub"
+      },
+      "description": {
+        "en": "The integration reads GitHub with a personal access token. Create a fine-grained token: the \"Public repositories\" access is enough, read-only. To follow private repositories, choose them and grant \"Metadata\", \"Contents\", \"Issues\", \"Pull requests\" and \"Discussions\" in read-only. Copy the token below.",
+        "fr": "L’intégration lit GitHub avec un jeton d’accès personnel. Créez un jeton à granularité fine : l’accès « Public repositories » suffit, en lecture seule. Pour suivre des dépôts privés, sélectionnez-les et accordez « Metadata », « Contents », « Issues », « Pull requests » et « Discussions » en lecture seule. Copiez le jeton ci-dessous.",
+        "de": "Die Integration liest GitHub mit einem persönlichen Zugriffstoken. Erstelle ein feingranulares Token: Der Zugriff „Public repositories“ genügt, nur lesend. Um private Repositorys zu verfolgen, wähle sie aus und erteile „Metadata“, „Contents“, „Issues“, „Pull requests“ und „Discussions“ nur lesend. Kopiere das Token hierher.",
+        "es": "La integración lee GitHub con un token de acceso personal. Crea un token de grano fino: basta con el acceso «Public repositories», de solo lectura. Para seguir repositorios privados, selecciónalos y concede «Metadata», «Contents», «Issues», «Pull requests» y «Discussions» en solo lectura. Copia el token aquí."
+      },
+      "links": [
+        {
+          "url": "https://github.com/settings/personal-access-tokens/new",
+          "label": {
+            "en": "Create a token",
+            "fr": "Créer un jeton",
+            "de": "Token erstellen",
+            "es": "Crear un token"
+          }
+        },
+        {
+          "url": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+          "label": {
+            "en": "GitHub documentation",
+            "fr": "Documentation GitHub",
+            "de": "GitHub-Dokumentation",
+            "es": "Documentación de GitHub"
+          }
+        }
+      ]
+    },
+    {
+      "key": "token",
+      "type": "secret",
+      "label": {
+        "en": "Personal access token",
+        "fr": "Jeton d’accès personnel",
+        "de": "Persönliches Zugriffstoken",
+        "es": "Token de acceso personal"
+      },
+      "description": {
+        "en": "Starts with github_pat_ (fine-grained) or ghp_ (classic, no scope needed).",
+        "fr": "Commence par github_pat_ (granularité fine) ou ghp_ (classique, sans portée).",
+        "de": "Beginnt mit github_pat_ (feingranular) oder ghp_ (klassisch, ohne Bereich).",
+        "es": "Empieza por github_pat_ (de grano fino) o ghp_ (clásico, sin ámbito)."
+      },
+      "required": true
+    },
+    {
+      "key": "repositories_intro",
+      "type": "section",
+      "label": {
+        "en": "Repositories",
+        "fr": "Dépôts",
+        "de": "Repositorys",
+        "es": "Repositorios"
+      },
+      "description": {
+        "en": "Each followed repository becomes a device on the Discovery screen, next to a device for your account. Scene triggers and widgets pick them by device.",
+        "fr": "Chaque dépôt suivi devient un appareil dans l’écran de découverte, à côté d’un appareil pour votre compte. Les déclencheurs de scène et les widgets les choisissent par appareil.",
+        "de": "Jedes verfolgte Repository wird zu einem Gerät im Reiter Entdecken, neben einem Gerät für dein Konto. Szenenauslöser und Widgets wählen sie über das Gerät aus.",
+        "es": "Cada repositorio seguido se convierte en un dispositivo en la pestaña Descubrir, junto a un dispositivo para tu cuenta. Los disparadores de escena y los widgets los eligen por dispositivo."
+      }
+    },
+    {
+      "key": "repositories",
+      "type": "string",
+      "label": {
+        "en": "Repositories to follow",
+        "fr": "Dépôts à suivre",
+        "de": "Zu verfolgende Repositorys",
+        "es": "Repositorios a seguir"
+      },
+      "description": {
+        "en": "owner/name or the github.com link, separated by commas (20 at most).",
+        "fr": "propriétaire/nom ou le lien github.com, séparés par des virgules (20 au maximum).",
+        "de": "Besitzer/Name oder der github.com-Link, durch Kommas getrennt (höchstens 20).",
+        "es": "propietario/nombre o el enlace de github.com, separados por comas (20 como máximo)."
+      },
+      "placeholder": {
+        "en": "GladysAssistant/Gladys, octocat/Hello-World",
+        "fr": "GladysAssistant/Gladys, octocat/Hello-World",
+        "de": "GladysAssistant/Gladys, octocat/Hello-World",
+        "es": "GladysAssistant/Gladys, octocat/Hello-World"
+      },
+      "required": false
+    },
+    {
+      "key": "poll_interval",
+      "type": "number",
+      "label": {
+        "en": "Refresh interval (s)",
+        "fr": "Intervalle de lecture (s)",
+        "de": "Abfrageintervall (s)",
+        "es": "Intervalo de lectura (s)"
+      },
+      "description": {
+        "en": "How often GitHub is read, between 60 and 3600 seconds. It is also the delay of the scene triggers.",
+        "fr": "Fréquence de lecture de GitHub, entre 60 et 3600 secondes. C’est aussi le délai de réaction des déclencheurs de scène.",
+        "de": "Wie oft GitHub gelesen wird, zwischen 60 und 3600 Sekunden. Das ist auch die Reaktionszeit der Szenenauslöser.",
+        "es": "Cada cuánto se lee GitHub, entre 60 y 3600 segundos. Es también el retardo de los disparadores de escena."
+      },
+      "min": 60,
+      "max": 3600,
+      "default": 120,
+      "required": false
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the texts",
+        "fr": "Langue des textes",
+        "de": "Sprache der Texte",
+        "es": "Idioma de los textos"
+      },
+      "description": {
+        "en": "Device names, scene summaries and outputs. Automatic: the language of your dashboard, once a GitHub widget has been displayed.",
+        "fr": "Noms des appareils, résumés et sorties des scènes. Automatique : la langue de votre tableau de bord, dès qu’un widget GitHub a été affiché.",
+        "de": "Gerätenamen, Zusammenfassungen und Ausgaben der Szenen. Automatisch: die Sprache deines Dashboards, sobald ein GitHub-Widget angezeigt wurde.",
+        "es": "Nombres de los dispositivos, resúmenes y salidas de las escenas. Automático: el idioma de tu panel, en cuanto se haya mostrado un widget de GitHub."
+      },
+      "options": [
+        {
+          "value": "auto",
+          "label": {
+            "en": "Automatic",
+            "fr": "Automatique",
+            "de": "Automatisch",
+            "es": "Automático"
+          }
+        },
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "English",
+            "de": "English",
+            "es": "English"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "Français",
+            "fr": "Français",
+            "de": "Français",
+            "es": "Français"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "Deutsch",
+            "fr": "Deutsch",
+            "de": "Deutsch",
+            "es": "Deutsch"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Español",
+            "fr": "Español",
+            "de": "Español",
+            "es": "Español"
+          }
+        }
+      ],
+      "default": "auto",
+      "required": false
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Checks the token and reads every followed repository.",
+        "fr": "Vérifie le jeton et lit chaque dépôt suivi.",
+        "de": "Prüft das Token und liest jedes verfolgte Repository.",
+        "es": "Comprueba el token y lee cada repositorio seguido."
+      },
+      "timeout_seconds": 30
+    }
+  ],
+  "widgets": [
+    {
+      "key": "repository",
+      "label": {
+        "en": "GitHub repository",
+        "fr": "Dépôt GitHub",
+        "de": "GitHub-Repository",
+        "es": "Repositorio de GitHub"
+      },
+      "description": {
+        "en": "Stars, forks, issues, pull requests, latest release and checks of a repository.",
+        "fr": "Étoiles, forks, issues, pull requests, dernière version et vérifications d’un dépôt.",
+        "de": "Sterne, Forks, Issues, Pull-Requests, neuestes Release und Prüfungen eines Repositorys.",
+        "es": "Estrellas, forks, issues, pull requests, última versión y comprobaciones de un repositorio."
+      },
+      "icon": "github",
+      "settings": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "Leave empty for the first followed repository.",
+            "fr": "Laissez vide pour le premier dépôt suivi.",
+            "de": "Leer lassen für das erste verfolgte Repository.",
+            "es": "Déjalo vacío para el primer repositorio seguido."
+          },
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "activity",
+      "label": {
+        "en": "GitHub activity",
+        "fr": "Activité GitHub",
+        "de": "GitHub-Aktivität",
+        "es": "Actividad de GitHub"
+      },
+      "description": {
+        "en": "The latest releases, issues, pull requests and commits, newest first.",
+        "fr": "Les dernières versions, issues, pull requests et commits, du plus récent au plus ancien.",
+        "de": "Die neuesten Releases, Issues, Pull-Requests und Commits, die neuesten zuerst.",
+        "es": "Las últimas versiones, issues, pull requests y commits, de la más reciente a la más antigua."
+      },
+      "icon": "activity",
+      "settings": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "Leave empty for every followed repository.",
+            "fr": "Laissez vide pour tous les dépôts suivis.",
+            "de": "Leer lassen für alle verfolgten Repositorys.",
+            "es": "Déjalo vacío para todos los repositorios seguidos."
+          },
+          "required": false
+        },
+        {
+          "key": "kind",
+          "type": "select",
+          "label": {
+            "en": "Show",
+            "fr": "Afficher",
+            "de": "Anzeigen",
+            "es": "Mostrar"
+          },
+          "options": [
+            {
+              "value": "all",
+              "label": {
+                "en": "Everything",
+                "fr": "Tout",
+                "de": "Alles",
+                "es": "Todo"
+              }
+            },
+            {
+              "value": "releases",
+              "label": {
+                "en": "Releases",
+                "fr": "Versions",
+                "de": "Releases",
+                "es": "Versiones"
+              }
+            },
+            {
+              "value": "issues",
+              "label": {
+                "en": "Issues",
+                "fr": "Issues",
+                "de": "Issues",
+                "es": "Issues"
+              }
+            },
+            {
+              "value": "pull_requests",
+              "label": {
+                "en": "Pull requests",
+                "fr": "Pull requests",
+                "de": "Pull-Requests",
+                "es": "Pull requests"
+              }
+            },
+            {
+              "value": "commits",
+              "label": {
+                "en": "Commits",
+                "fr": "Commits",
+                "de": "Commits",
+                "es": "Commits"
+              }
+            }
+          ],
+          "default": "all",
+          "required": false
+        },
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Entries shown",
+            "fr": "Entrées affichées",
+            "de": "Angezeigte Einträge",
+            "es": "Entradas mostradas"
+          },
+          "min": 1,
+          "max": 8,
+          "default": 6,
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "account",
+      "label": {
+        "en": "GitHub account",
+        "fr": "Compte GitHub",
+        "de": "GitHub-Konto",
+        "es": "Cuenta de GitHub"
+      },
+      "description": {
+        "en": "Followers, following, public repositories and the API quota left.",
+        "fr": "Abonnés, abonnements, dépôts publics et quota d’API restant.",
+        "de": "Follower, gefolgte Konten, öffentliche Repositorys und verbleibendes API-Limit.",
+        "es": "Seguidores, seguidos, repositorios públicos y cuota de API restante."
+      },
+      "icon": "user"
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "release_published",
+      "label": {
+        "en": "GitHub: release published",
+        "fr": "GitHub : version publiée",
+        "de": "GitHub: Release veröffentlicht",
+        "es": "GitHub: versión publicada"
+      },
+      "description": {
+        "en": "A followed repository publishes a release. Checked every 2 minutes by default.",
+        "fr": "Un dépôt suivi publie une version. Vérifié toutes les 2 minutes par défaut.",
+        "de": "Ein verfolgtes Repository veröffentlicht ein Release. Standardmäßig alle 2 Minuten geprüft.",
+        "es": "Un repositorio seguido publica una versión. Se comprueba cada 2 minutos por defecto."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        },
+        {
+          "key": "release_type",
+          "type": "select",
+          "label": {
+            "en": "Type",
+            "fr": "Type",
+            "de": "Typ",
+            "es": "Tipo"
+          },
+          "description": {
+            "en": "Leave empty for both.",
+            "fr": "Laissez vide pour les deux.",
+            "de": "Leer lassen für beide.",
+            "es": "Déjalo vacío para ambos."
+          },
+          "options": [
+            {
+              "value": "stable",
+              "label": {
+                "en": "Release",
+                "fr": "Version",
+                "de": "Release",
+                "es": "Versión"
+              }
+            },
+            {
+              "value": "prerelease",
+              "label": {
+                "en": "Pre-release",
+                "fr": "Préversion",
+                "de": "Vorabversion",
+                "es": "Versión preliminar"
+              }
+            }
+          ],
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "Release name",
+            "fr": "Nom de la version",
+            "de": "Release-Name",
+            "es": "Nombre de la versión"
+          }
+        },
+        {
+          "key": "tag",
+          "type": "string",
+          "label": {
+            "en": "Tag",
+            "fr": "Tag",
+            "de": "Tag",
+            "es": "Etiqueta"
+          }
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "label": {
+            "en": "Author",
+            "fr": "Auteur",
+            "de": "Autor",
+            "es": "Autor"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    },
+    {
+      "key": "issue_opened",
+      "label": {
+        "en": "GitHub: issue opened",
+        "fr": "GitHub : issue ouverte",
+        "de": "GitHub: Issue eröffnet",
+        "es": "GitHub: issue abierta"
+      },
+      "description": {
+        "en": "Someone opens an issue on a followed repository.",
+        "fr": "Quelqu’un ouvre une issue sur un dépôt suivi.",
+        "de": "Jemand eröffnet ein Issue in einem verfolgten Repository.",
+        "es": "Alguien abre una issue en un repositorio seguido."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "number",
+          "type": "number",
+          "label": {
+            "en": "Number",
+            "fr": "Numéro",
+            "de": "Nummer",
+            "es": "Número"
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          }
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "label": {
+            "en": "Author",
+            "fr": "Auteur",
+            "de": "Autor",
+            "es": "Autor"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    },
+    {
+      "key": "pull_request_opened",
+      "label": {
+        "en": "GitHub: pull request opened",
+        "fr": "GitHub : pull request ouverte",
+        "de": "GitHub: Pull-Request eröffnet",
+        "es": "GitHub: pull request abierta"
+      },
+      "description": {
+        "en": "Someone opens a pull request on a followed repository.",
+        "fr": "Quelqu’un ouvre une pull request sur un dépôt suivi.",
+        "de": "Jemand eröffnet einen Pull-Request in einem verfolgten Repository.",
+        "es": "Alguien abre una pull request en un repositorio seguido."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "number",
+          "type": "number",
+          "label": {
+            "en": "Number",
+            "fr": "Numéro",
+            "de": "Nummer",
+            "es": "Número"
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          }
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "label": {
+            "en": "Author",
+            "fr": "Auteur",
+            "de": "Autor",
+            "es": "Autor"
+          }
+        },
+        {
+          "key": "draft",
+          "type": "boolean",
+          "label": {
+            "en": "Draft",
+            "fr": "Brouillon",
+            "de": "Entwurf",
+            "es": "Borrador"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    },
+    {
+      "key": "discussion_created",
+      "label": {
+        "en": "GitHub: discussion started",
+        "fr": "GitHub : discussion lancée",
+        "de": "GitHub: Diskussion gestartet",
+        "es": "GitHub: discusión iniciada"
+      },
+      "description": {
+        "en": "Someone starts a discussion on a followed repository.",
+        "fr": "Quelqu’un lance une discussion sur un dépôt suivi.",
+        "de": "Jemand startet eine Diskussion in einem verfolgten Repository.",
+        "es": "Alguien inicia una discusión en un repositorio seguido."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "number",
+          "type": "number",
+          "label": {
+            "en": "Number",
+            "fr": "Numéro",
+            "de": "Nummer",
+            "es": "Número"
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          }
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "label": {
+            "en": "Author",
+            "fr": "Auteur",
+            "de": "Autor",
+            "es": "Autor"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    },
+    {
+      "key": "commit_pushed",
+      "label": {
+        "en": "GitHub: new commit",
+        "fr": "GitHub : nouveau commit",
+        "de": "GitHub: neuer Commit",
+        "es": "GitHub: nuevo commit"
+      },
+      "description": {
+        "en": "A commit lands on the default branch of a followed repository (merges included).",
+        "fr": "Un commit arrive sur la branche par défaut d’un dépôt suivi (fusions comprises).",
+        "de": "Ein Commit landet im Standard-Branch eines verfolgten Repositorys (Merges inbegriffen).",
+        "es": "Un commit llega a la rama predeterminada de un repositorio seguido (fusiones incluidas)."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "branch",
+          "type": "string",
+          "label": {
+            "en": "Branch",
+            "fr": "Branche",
+            "de": "Branch",
+            "es": "Rama"
+          }
+        },
+        {
+          "key": "sha",
+          "type": "string",
+          "label": {
+            "en": "Commit SHA",
+            "fr": "SHA du commit",
+            "de": "Commit-SHA",
+            "es": "SHA del commit"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Commit message",
+            "fr": "Message du commit",
+            "de": "Commit-Nachricht",
+            "es": "Mensaje del commit"
+          }
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "label": {
+            "en": "Author",
+            "fr": "Auteur",
+            "de": "Autor",
+            "es": "Autor"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    },
+    {
+      "key": "star_added",
+      "label": {
+        "en": "GitHub: new star",
+        "fr": "GitHub : nouvelle étoile",
+        "de": "GitHub: neuer Stern",
+        "es": "GitHub: nueva estrella"
+      },
+      "description": {
+        "en": "The star count of a followed repository goes up.",
+        "fr": "Le nombre d’étoiles d’un dépôt suivi augmente.",
+        "de": "Die Zahl der Sterne eines verfolgten Repositorys steigt.",
+        "es": "El número de estrellas de un repositorio seguido aumenta."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "stars",
+          "type": "number",
+          "label": {
+            "en": "Stars",
+            "fr": "Étoiles",
+            "de": "Sterne",
+            "es": "Estrellas"
+          }
+        },
+        {
+          "key": "added",
+          "type": "number",
+          "label": {
+            "en": "Stars added",
+            "fr": "Étoiles ajoutées",
+            "de": "Neue Sterne",
+            "es": "Estrellas añadidas"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    },
+    {
+      "key": "checks_completed",
+      "label": {
+        "en": "GitHub: checks completed",
+        "fr": "GitHub : vérifications terminées",
+        "de": "GitHub: Prüfungen abgeschlossen",
+        "es": "GitHub: comprobaciones terminadas"
+      },
+      "description": {
+        "en": "The checks (CI) of the latest commit on the default branch pass or fail.",
+        "fr": "Les vérifications (CI) du dernier commit de la branche par défaut réussissent ou échouent.",
+        "de": "Die Prüfungen (CI) des neuesten Commits im Standard-Branch bestehen oder schlagen fehl.",
+        "es": "Las comprobaciones (CI) del último commit de la rama predeterminada se superan o fallan."
+      },
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "One of the GitHub repository devices. Leave empty for any repository.",
+            "fr": "Un des appareils de dépôt GitHub. Laissez vide pour tous les dépôts.",
+            "de": "Eines der GitHub-Repository-Geräte. Leer lassen für jedes Repository.",
+            "es": "Uno de los dispositivos de repositorio de GitHub. Déjalo vacío para cualquier repositorio."
+          },
+          "required": false
+        },
+        {
+          "key": "state",
+          "type": "select",
+          "label": {
+            "en": "Result",
+            "fr": "Résultat",
+            "de": "Ergebnis",
+            "es": "Resultado"
+          },
+          "description": {
+            "en": "Leave empty for both.",
+            "fr": "Laissez vide pour les deux.",
+            "de": "Leer lassen für beide.",
+            "es": "Déjalo vacío para ambos."
+          },
+          "options": [
+            {
+              "value": "success",
+              "label": {
+                "en": "Passed",
+                "fr": "Réussies",
+                "de": "Bestanden",
+                "es": "Superadas"
+              }
+            },
+            {
+              "value": "failure",
+              "label": {
+                "en": "Failed",
+                "fr": "En échec",
+                "de": "Fehlgeschlagen",
+                "es": "Fallidas"
+              }
+            }
+          ],
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "branch",
+          "type": "string",
+          "label": {
+            "en": "Branch",
+            "fr": "Branche",
+            "de": "Branch",
+            "es": "Rama"
+          }
+        },
+        {
+          "key": "sha",
+          "type": "string",
+          "label": {
+            "en": "Commit SHA",
+            "fr": "SHA du commit",
+            "de": "Commit-SHA",
+            "es": "SHA del commit"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Commit message",
+            "fr": "Message du commit",
+            "de": "Commit-Nachricht",
+            "es": "Mensaje del commit"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "get_repository",
+      "label": {
+        "en": "GitHub: read a repository",
+        "fr": "GitHub : lire un dépôt",
+        "de": "GitHub: Repository lesen",
+        "es": "GitHub: leer un repositorio"
+      },
+      "description": {
+        "en": "The figures and latest items of a repository, for a message or a condition.",
+        "fr": "Les chiffres et derniers éléments d’un dépôt, pour un message ou une condition.",
+        "de": "Die Zahlen und neuesten Einträge eines Repositorys, für eine Nachricht oder eine Bedingung.",
+        "es": "Las cifras y últimos elementos de un repositorio, para un mensaje o una condición."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "repository",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Repository",
+            "fr": "Dépôt",
+            "de": "Repository",
+            "es": "Repositorio"
+          },
+          "description": {
+            "en": "Leave empty for the first followed repository.",
+            "fr": "Laissez vide pour le premier dépôt suivi.",
+            "de": "Leer lassen für das erste verfolgte Repository.",
+            "es": "Déjalo vacío para el primer repositorio seguido."
+          },
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "key": "repository_name",
+          "type": "string",
+          "label": {
+            "en": "Repository name",
+            "fr": "Nom du dépôt",
+            "de": "Repository-Name",
+            "es": "Nombre del repositorio"
+          },
+          "description": {
+            "en": "owner/name",
+            "fr": "propriétaire/nom",
+            "de": "Besitzer/Name",
+            "es": "propietario/nombre"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "GitHub link",
+            "fr": "Lien GitHub",
+            "de": "GitHub-Link",
+            "es": "Enlace de GitHub"
+          }
+        },
+        {
+          "key": "stars",
+          "type": "number",
+          "label": {
+            "en": "Stars",
+            "fr": "Étoiles",
+            "de": "Sterne",
+            "es": "Estrellas"
+          },
+          "description": {
+            "en": "-1 when GitHub did not say.",
+            "fr": "-1 si GitHub ne l’a pas indiqué.",
+            "de": "-1, wenn GitHub es nicht angegeben hat.",
+            "es": "-1 si GitHub no lo ha indicado."
+          }
+        },
+        {
+          "key": "forks",
+          "type": "number",
+          "label": {
+            "en": "Forks",
+            "fr": "Forks",
+            "de": "Forks",
+            "es": "Forks"
+          },
+          "description": {
+            "en": "-1 when GitHub did not say.",
+            "fr": "-1 si GitHub ne l’a pas indiqué.",
+            "de": "-1, wenn GitHub es nicht angegeben hat.",
+            "es": "-1 si GitHub no lo ha indicado."
+          }
+        },
+        {
+          "key": "watchers",
+          "type": "number",
+          "label": {
+            "en": "Watchers",
+            "fr": "Abonnés",
+            "de": "Beobachter",
+            "es": "Seguidores"
+          },
+          "description": {
+            "en": "-1 when GitHub did not say.",
+            "fr": "-1 si GitHub ne l’a pas indiqué.",
+            "de": "-1, wenn GitHub es nicht angegeben hat.",
+            "es": "-1 si GitHub no lo ha indicado."
+          }
+        },
+        {
+          "key": "open_issues",
+          "type": "number",
+          "label": {
+            "en": "Open issues",
+            "fr": "Issues ouvertes",
+            "de": "Offene Issues",
+            "es": "Issues abiertas"
+          },
+          "description": {
+            "en": "-1 when GitHub did not say.",
+            "fr": "-1 si GitHub ne l’a pas indiqué.",
+            "de": "-1, wenn GitHub es nicht angegeben hat.",
+            "es": "-1 si GitHub no lo ha indicado."
+          }
+        },
+        {
+          "key": "open_pull_requests",
+          "type": "number",
+          "label": {
+            "en": "Open pull requests",
+            "fr": "Pull requests ouvertes",
+            "de": "Offene Pull-Requests",
+            "es": "Pull requests abiertas"
+          },
+          "description": {
+            "en": "-1 when GitHub did not say.",
+            "fr": "-1 si GitHub ne l’a pas indiqué.",
+            "de": "-1, wenn GitHub es nicht angegeben hat.",
+            "es": "-1 si GitHub no lo ha indicado."
+          }
+        },
+        {
+          "key": "latest_release",
+          "type": "string",
+          "label": {
+            "en": "Latest release",
+            "fr": "Dernière version",
+            "de": "Neuestes Release",
+            "es": "Última versión"
+          }
+        },
+        {
+          "key": "latest_release_url",
+          "type": "string",
+          "label": {
+            "en": "Latest release link",
+            "fr": "Lien de la dernière version",
+            "de": "Link zum neuesten Release",
+            "es": "Enlace de la última versión"
+          }
+        },
+        {
+          "key": "latest_commit",
+          "type": "string",
+          "label": {
+            "en": "Latest commit",
+            "fr": "Dernier commit",
+            "de": "Neuester Commit",
+            "es": "Último commit"
+          }
+        },
+        {
+          "key": "checks",
+          "type": "string",
+          "label": {
+            "en": "Checks",
+            "fr": "Vérifications",
+            "de": "Prüfungen",
+            "es": "Comprobaciones"
+          },
+          "description": {
+            "en": "success, failure, pending, or empty without checks.",
+            "fr": "success, failure, pending, ou vide sans vérifications.",
+            "de": "success, failure, pending oder leer ohne Prüfungen.",
+            "es": "success, failure, pending, o vacío sin comprobaciones."
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          },
+          "description": {
+            "en": "A sentence ready to put in a message.",
+            "fr": "Une phrase prête à mettre dans un message.",
+            "de": "Ein fertiger Satz für eine Nachricht.",
+            "es": "Una frase lista para poner en un mensaje."
+          }
+        }
+      ]
+    }
+  ]
+}

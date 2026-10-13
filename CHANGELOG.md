@@ -1,0 +1,18 @@
+# Changelog
+
+All notable changes to this integration are documented in this file. The format
+follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions
+follow [Semantic Versioning](https://semver.org/). This file is generated at
+each release from the Conventional Commits: do not edit it by hand.
+
+## [0.1.0] - unreleased
+
+### Added
+
+- A device per followed GitHub repository: stars, forks, watchers, open issues and pull requests, merged pull requests, discussions, downloads of the latest release, and the latest release, tag, commit, issue, pull request and discussion.
+- A device for the account of the token: followers, following, public repositories and gists.
+- Scene triggers: release published (release or pre-release), issue opened, pull request opened, discussion started, commit pushed on the default branch, star added, checks of the default branch passed or failed.
+- Scene action "read a repository": its figures and latest items as outputs.
+- Dashboard widgets: a repository at a glance, the latest activity of the followed repositories, the account with its remaining API quota.
+- Configuration with a personal access token (read-only access is enough), up to 20 repositories, a refresh interval from 60 seconds to 1 hour and a "Test the connection" button.
+- English, French, German and Spanish everywhere: settings, devices, widgets, scenes and documentation.

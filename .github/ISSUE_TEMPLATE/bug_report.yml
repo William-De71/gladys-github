@@ -1,0 +1,47 @@
+name: Bug report
+description: Something does not work as described in the documentation.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Never paste your GitHub token: the logs of the integration do not contain it, but check before posting.
+  - type: input
+    id: gladys-version
+    attributes:
+      label: Gladys version
+      description: Settings → System.
+      placeholder: '5.1.1'
+    validations:
+      required: true
+  - type: input
+    id: integration-version
+    attributes:
+      label: Integration version
+      description: Integrations → GitHub, or Settings → Supervision.
+      placeholder: '1.1.0'
+    validations:
+      required: true
+  - type: input
+    id: token
+    attributes:
+      label: Token type
+      description: Fine-grained or classic, public repositories only or private ones too (never the token itself).
+      placeholder: 'Fine-grained, public repositories'
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Logs of the integration (Settings → Supervision), ideally with the SDK debug logs: add the environment variable `DEBUG=gladys-integration-sdk` to the container, reproduce, then copy the lines. Hide the names of private repositories if you wish.
+      render: text

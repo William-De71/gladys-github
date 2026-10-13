@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="534" viewBox="0 0 800 534">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#1f2b3f"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="534" fill="url(#bg)"/>
+  <!-- commit graph -->
+  <g stroke-width="6" fill="none" stroke-linecap="round">
+    <path d="M90 300 H710" stroke="#3fb950"/>
+    <path d="M230 300 C 280 300, 280 220, 330 220 H 470 C 520 220, 520 300, 570 300" stroke="#58a6ff"/>
+    <path d="M400 300 C 440 300, 440 380, 480 380 H 600" stroke="#d29922"/>
+  </g>
+  <g stroke="#0d1117" stroke-width="5">
+    <circle cx="90" cy="300" r="16" fill="#3fb950"/>
+    <circle cx="230" cy="300" r="16" fill="#3fb950"/>
+    <circle cx="330" cy="220" r="16" fill="#58a6ff"/>
+    <circle cx="400" cy="220" r="16" fill="#58a6ff"/>
+    <circle cx="470" cy="220" r="16" fill="#58a6ff"/>
+    <circle cx="400" cy="300" r="16" fill="#3fb950"/>
+    <circle cx="570" cy="300" r="16" fill="#3fb950"/>
+    <circle cx="480" cy="380" r="16" fill="#d29922"/>
+    <circle cx="600" cy="380" r="16" fill="#d29922"/>
+    <circle cx="710" cy="300" r="22" fill="#f0f6fc"/>
+  </g>
+  <!-- star badge -->
+  <g transform="translate(640 120)">
+    <rect x="-70" y="-34" width="140" height="68" rx="34" fill="#21262d" stroke="#30363d" stroke-width="3"/>
+    <path d="M-38 -18 l7.6 15.4 17 2.5 -12.3 12 2.9 16.9 -15.2 -8 -15.2 8 2.9 -16.9 -12.3 -12 17 -2.5z" fill="#e3b341"/>
+    <text x="12" y="12" font-family="DejaVu Sans, Arial, sans-serif" font-size="32" font-weight="bold" fill="#f0f6fc">42</text>
+  </g>
+  <text x="70" y="110" font-family="DejaVu Sans, Arial, sans-serif" font-size="64" font-weight="bold" fill="#f0f6fc">GitHub</text>
+  <text x="72" y="160" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" fill="#8b949e">for Gladys Assistant</text>
+  <text x="70" y="474" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" fill="#c9d1d9">Releases · Issues · Pull requests · Stars · CI</text>
+</svg>

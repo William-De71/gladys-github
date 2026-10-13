@@ -1,0 +1,73 @@
+# GitHub
+
+## Overview
+
+Follow GitHub repositories from Gladys: each repository becomes a device with its stars, forks, open issues and pull requests, and its latest release, tag, commit, issue, pull request and discussion. Scenes react to a new release, issue, pull request, discussion, commit, star, or to the checks (CI) of the default branch. Three dashboard widgets show a repository, the latest activity and your account.
+
+The integration reads the GitHub API (cloud): nothing else leaves your network, and it only reads, it never writes to GitHub.
+
+![Repository widget (illustration)](https://raw.githubusercontent.com/William-De71/gladys-github/main/docs/assets/widget-repository.svg)
+
+## Requirements
+
+- Gladys Assistant 5.1.0 or later.
+- A GitHub account and a personal access token. A **fine-grained** token with the "Public repositories" access (read-only) is enough for public repositories. For private repositories, select them and grant read-only "Metadata", "Contents", "Issues", "Pull requests" and "Discussions". A classic token without any scope also works for public repositories.
+
+## Configuration
+
+1. Create the token on [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new).
+2. Open **Integrations → GitHub**, paste the token and list the repositories to follow.
+3. Save, then click **Test the connection**: it shows your account, the API quota left and the repositories it could read.
+
+| Field                  | Description                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Personal access token  | Required. Never shown again, never logged.                                   |
+| Repositories to follow | `owner/name` or the github.com link, separated by commas, 20 at most.        |
+| Refresh interval (s)   | 60 to 3600, 120 by default. Also the delay of the scene triggers.            |
+| Language of the texts  | Device names and scene summaries. Automatic: the language of your dashboard. |
+
+One request reads everything at each round: at 120 seconds, the integration uses about 1 % of the 5,000 points an hour GitHub grants to a token.
+
+## Usage
+
+### Devices
+
+On the **Discovery** screen, add the repositories and your account. A repository offers: stars, forks, watchers, open issues, open pull requests, merged pull requests, discussions, downloads of the latest release (when it has files), and the latest release, tag, commit, issue, pull request and discussion as texts. The account offers followers, following, public repositories and public gists.
+
+### Scene triggers
+
+| Trigger             | Filters                            | Variables                                   |
+| ------------------- | ---------------------------------- | ------------------------------------------- |
+| Release published   | repository, release or pre-release | name, tag, author, link, summary            |
+| Issue opened        | repository                         | number, title, author, link, summary        |
+| Pull request opened | repository                         | number, title, author, draft, link, summary |
+| Discussion started  | repository                         | number, title, author, link, summary        |
+| New commit          | repository                         | branch, SHA, message, author, link, summary |
+| New star            | repository                         | stars, stars added, link, summary           |
+| Checks completed    | repository, passed or failed       | branch, SHA, message, link, summary         |
+
+Examples:
+
+- When a release of a project you use is published → send yourself a message with `{{triggerEvent.data.summary}}`.
+- When the checks of your project fail → turn the office lamp red.
+- When your repository gets a new star → play a sound on the speaker.
+
+The first read after a start is a reference: nothing that happened while Gladys was off is replayed.
+
+### Scene action
+
+**GitHub: read a repository** returns its stars, forks, watchers, open issues and pull requests, latest release (and its link), latest commit, checks and a summary sentence. Unknown counters are -1.
+
+### Widgets
+
+- **GitHub repository**: stars, forks, issues, pull requests, latest release, checks of the default branch and a link.
+- **GitHub activity**: the latest releases, issues, pull requests and commits of all repositories (or one), filterable.
+- **GitHub account**: followers, following, public repositories and the API quota left.
+
+## Troubleshooting
+
+- **"GitHub refused the token"**: the token expired or was revoked: create a new one.
+- **"Not found or not allowed by the token"**: check the spelling of the repository, or give the token access to it (private repository).
+- **"API quota exhausted"**: another tool uses the same token: increase the refresh interval, or use a dedicated token. Reading resumes by itself.
+- **No star author**: the integration only gets the number of stars from GitHub, not who starred.
+- To report a problem, open an issue on [GitHub](https://github.com/William-De71/gladys-github/issues) with the Gladys and integration versions and the logs (`DEBUG=gladys-integration-sdk`).
