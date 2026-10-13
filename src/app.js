@@ -14,7 +14,8 @@
 //     its API quota (see widgets.js).
 //
 // GitHub has no push without a public webhook endpoint: the integration reads
-// the GraphQL API on its own timer, one request per round (see watcher.js).
+// the GraphQL API on its own timer, one request per 10 repositories (see
+// github-api.js).
 // It needs a personal access token: read-only access is enough.
 //
 // index.js only creates the SDK client; the tests drive this module with the

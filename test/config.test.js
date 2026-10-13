@@ -23,14 +23,14 @@ test('reads owner/name, github.com links and .git suffixes', () => {
   }
 });
 
-test('repositories: separators, duplicates (case-insensitive), cap at 20', () => {
+test('repositories: separators, duplicates (case-insensitive), cap at 50', () => {
   assert.deepEqual(parseRepositories('octo/a, Octo/A; octo/b\nocto/c  nope'), [
     'octo/a',
     'octo/b',
     'octo/c',
   ]);
-  const many = Array.from({ length: 30 }, (_, i) => `octo/r${i}`).join(',');
-  assert.equal(parseRepositories(many).length, 20);
+  const many = Array.from({ length: 60 }, (_, i) => `octo/r${i}`).join(',');
+  assert.equal(parseRepositories(many).length, 50);
   assert.deepEqual(parseRepositories(undefined), []);
 });
 

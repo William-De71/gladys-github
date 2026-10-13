@@ -26,7 +26,7 @@ test('patterns: owner/*, owner/prefix*, as links too, kept apart from full names
   assert.equal(parsePatterns(Array.from({ length: 15 }, (_, i) => `o${i}/*`).join(',')).length, 10);
 });
 
-test('expansion: full names first, prefix case-insensitive, no duplicate, cap at 20', () => {
+test('expansion: full names first, prefix case-insensitive, no duplicate, cap at 50', () => {
   const listings = new Map([
     ['prohand', ['prohand/gladys-tapo', 'prohand/dotfiles', 'prohand/Gladys-x']],
   ]);
@@ -38,15 +38,15 @@ test('expansion: full names first, prefix case-insensitive, no duplicate, cap at
     ),
     { repositories: ['octo/a', 'prohand/gladys-tapo', 'prohand/Gladys-x'], matched: 3 },
   );
-  const many = new Map([['big', Array.from({ length: 30 }, (_, i) => `big/r${i}`)]]);
+  const many = new Map([['big', Array.from({ length: 60 }, (_, i) => `big/r${i}`)]]);
   const { repositories, matched } = expandPatterns(
     ['octo/a'],
     [{ owner: 'big', prefix: '' }],
     many,
   );
-  assert.equal(repositories.length, 20);
+  assert.equal(repositories.length, 50);
   assert.equal(repositories[0], 'octo/a');
-  assert.equal(matched, 31);
+  assert.equal(matched, 61);
 });
 
 test('the owners are read once an hour, again when the patterns or the token change', async () => {

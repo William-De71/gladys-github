@@ -1,11 +1,11 @@
 // -----------------------------------------------------------------------------
 // The watcher: reads GitHub on a loop.
 //
-// One GraphQL request per round reads the account, the quota and every
-// followed repository (see github-api.js). Each round leaves a snapshot per
-// repository, the single source the devices, the widgets and the scene
-// actions read from, and the transitions since the previous round (see
-// tracker.js).
+// Each round reads the account, the quota and every followed repository,
+// one GraphQL request per batch of 10 repositories (see github-api.js). Each
+// round leaves a snapshot per repository, the single source the devices, the
+// widgets and the scene actions read from, and the transitions since the
+// previous round (see tracker.js).
 //
 // The loop is a chain of timeouts, not an interval: a slow round never
 // overlaps the next one, and a new poll interval takes effect at once. When

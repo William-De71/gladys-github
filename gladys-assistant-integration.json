@@ -94,10 +94,10 @@
         "es": "Repositorios a seguir"
       },
       "description": {
-        "en": "owner/name or the github.com link, separated by commas (20 at most). owner/* follows every repository of an account, owner/gladys-* those starting with gladys-.",
-        "fr": "propriétaire/nom ou le lien github.com, séparés par des virgules (20 au maximum). propriétaire/* suit tous les dépôts d’un compte, propriétaire/gladys-* ceux qui commencent par gladys-.",
-        "de": "Besitzer/Name oder der github.com-Link, durch Kommas getrennt (höchstens 20). Besitzer/* verfolgt alle Repositorys eines Kontos, Besitzer/gladys-* die mit gladys- beginnenden.",
-        "es": "propietario/nombre o el enlace de github.com, separados por comas (20 como máximo). propietario/* sigue todos los repositorios de una cuenta, propietario/gladys-* los que empiezan por gladys-."
+        "en": "owner/name or the github.com link, separated by commas (50 at most). owner/* follows every repository of an account, owner/gladys-* those starting with gladys-.",
+        "fr": "propriétaire/nom ou le lien github.com, séparés par des virgules (50 au maximum). propriétaire/* suit tous les dépôts d’un compte, propriétaire/gladys-* ceux qui commencent par gladys-.",
+        "de": "Besitzer/Name oder der github.com-Link, durch Kommas getrennt (höchstens 50). Besitzer/* verfolgt alle Repositorys eines Kontos, Besitzer/gladys-* die mit gladys- beginnenden.",
+        "es": "propietario/nombre o el enlace de github.com, separados por comas (50 como máximo). propietario/* sigue todos los repositorios de una cuenta, propietario/gladys-* los que empiezan por gladys-."
       },
       "placeholder": {
         "en": "GladysAssistant/Gladys, octocat/Hello-World",

@@ -36,6 +36,42 @@ test('one query reads the account, the quota and every repository, names as vari
   assert.deepEqual([...answer.missing], [['octo/gone', 'NOT_FOUND']]);
 });
 
+test('repositories are read in batches of 10, the account once, the quota from the last batch', async () => {
+  const names = Array.from({ length: 23 }, (_, i) => `octo/r${i}`);
+  const repos = Object.fromEntries(
+    names.filter((full) => full !== 'octo/r12').map((full) => [full, rawRepository()]),
+  );
+  const fetch = githubApi(() => repos);
+  const answer = await client(fetch).round(names);
+  assert.deepEqual(
+    fetch.calls.map(({ body }) => Object.keys(body.variables).length / 2),
+    [10, 10, 3],
+  );
+  assert.deepEqual(
+    fetch.calls.map(({ body }) => /viewer \{/.test(body.query)),
+    [true, false, false],
+  );
+  assert.ok(fetch.calls.every(({ body }) => /rateLimit \{/.test(body.query)));
+  assert.equal(fetch.calls[2].body.variables.n2, 'r22');
+  assert.equal(answer.viewer.login, 'octocat');
+  assert.equal(answer.rateLimit.remaining, RAW_RATE_LIMIT.remaining);
+  assert.equal(answer.repositories.size, 23);
+  assert.ok(answer.repositories.get('octo/r22'));
+  assert.equal(answer.repositories.get('octo/r12'), null);
+  assert.deepEqual([...answer.missing], [['octo/r12', 'NOT_FOUND']]);
+});
+
+test('one failed batch fails the round', async () => {
+  let calls = 0;
+  const ok = githubApi(() => ({}));
+  const fetch = async (url, init) => {
+    calls += 1;
+    return calls === 2 ? response(502, {}) : ok(url, init);
+  };
+  const names = Array.from({ length: 15 }, (_, i) => `octo/r${i}`);
+  await assert.rejects(client(fetch).round(names), (err) => err.kind === 'server');
+});
+
 test('the query is valid without any repository (no unused fragment)', () => {
   assert.doesNotMatch(buildQuery(0), /fragment/);
   assert.match(buildQuery(2), /r1: repository\(owner: \$o1, name: \$n1\)/);

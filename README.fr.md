@@ -31,7 +31,7 @@ flowchart LR
   I -- "HTTPS GraphQL, jeton" --> H[(api.github.com)]
 ```
 
-Une requête GraphQL par passage lit le compte, le quota d'API et chaque dépôt suivi (1 point sur les 5 000 points par heure que GitHub accorde à un jeton). Le premier passage après un démarrage sert de référence : les transitions sont signalées à partir du passage suivant.
+Chaque passage lit le compte, le quota d'API et chaque dépôt suivi avec une requête GraphQL par lot de 10 dépôts (1 point chacune, sur les 5 000 points par heure que GitHub accorde à un jeton). Le premier passage après un démarrage sert de référence : les transitions sont signalées à partir du passage suivant.
 
 ```mermaid
 sequenceDiagram
@@ -110,7 +110,7 @@ Exemples de scènes :
 | Champ                     | Obligatoire | Description                                                                                                                        |
 | ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Jeton d'accès personnel   | Oui         | Stocké comme secret, jamais journalisé                                                                                             |
-| Dépôts à suivre           | Non         | `propriétaire/nom`, liens github.com ou motifs `propriétaire/*` / `propriétaire/préfixe*`, séparés par des virgules, 20 au maximum |
+| Dépôts à suivre           | Non         | `propriétaire/nom`, liens github.com ou motifs `propriétaire/*` / `propriétaire/préfixe*`, séparés par des virgules, 50 au maximum |
 | Intervalle de lecture (s) | Non         | De 60 à 3600, 120 par défaut                                                                                                       |
 | Langue des textes         | Non         | Noms des appareils et résumés des scènes ; automatique par défaut                                                                  |
 

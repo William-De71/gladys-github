@@ -31,7 +31,7 @@ flowchart LR
   I -- "HTTPS GraphQL, token" --> H[(api.github.com)]
 ```
 
-One GraphQL request per round reads the account, the API quota and every followed repository (1 point of the 5,000 points an hour GitHub grants to a token). The first round after a start is a reference: the transitions are reported from the next round on.
+Each round reads the account, the API quota and every followed repository with one GraphQL request per batch of 10 repositories (1 point each, of the 5,000 points an hour GitHub grants to a token). The first round after a start is a reference: the transitions are reported from the next round on.
 
 ```mermaid
 sequenceDiagram
@@ -110,7 +110,7 @@ Scene examples:
 | Field                  | Required | Description                                                                                             |
 | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
 | Personal access token  | Yes      | Stored as a secret, never logged                                                                        |
-| Repositories to follow | No       | `owner/name`, github.com links or `owner/*` / `owner/prefix*` patterns, separated by commas, 20 at most |
+| Repositories to follow | No       | `owner/name`, github.com links or `owner/*` / `owner/prefix*` patterns, separated by commas, 50 at most |
 | Refresh interval (s)   | No       | 60 to 3600, 120 by default                                                                              |
 | Language of the texts  | No       | Device names and scene summaries; automatic by default                                                  |
 

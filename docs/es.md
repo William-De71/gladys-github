@@ -22,13 +22,13 @@ La integración consulta la API de GitHub (nube): nada más sale de tu red, y so
 | Campo                    | Descripción                                                                                                       |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | Token de acceso personal | Obligatorio. Nunca se vuelve a mostrar ni se escribe en los registros.                                            |
-| Repositorios a seguir    | `propietario/nombre` o el enlace de github.com, o un patrón `propietario/*`, separados por comas, 20 como máximo. |
+| Repositorios a seguir    | `propietario/nombre` o el enlace de github.com, o un patrón `propietario/*`, separados por comas, 50 como máximo. |
 | Intervalo de lectura (s) | De 60 a 3600, 120 por defecto. Es también el retardo de los disparadores de escena.                               |
 | Idioma de los textos     | Nombres de los dispositivos y resúmenes de escenas. Automático: el idioma de tu panel.                            |
 
-Para seguir todos los repositorios de una cuenta u organización sin escribirlos uno a uno, escribe `propietario/*`, o `propietario/gladys-*` para los que empiezan por `gladys-`. Los forks y los repositorios archivados se omiten. Los patrones se combinan con nombres completos, por ejemplo `prohand/gladys-*, GladysAssistant/Gladys`. Por encima de 20 repositorios, los nombrados por completo van primero y después los actualizados más recientemente. La lista se vuelve a leer cada hora: un repositorio nuevo aparece en la pestaña Descubrir en menos de una hora.
+Para seguir todos los repositorios de una cuenta u organización sin escribirlos uno a uno, escribe `propietario/*`, o `propietario/gladys-*` para los que empiezan por `gladys-`. Los forks y los repositorios archivados se omiten. Los patrones se combinan con nombres completos, por ejemplo `prohand/gladys-*, GladysAssistant/Gladys`. Por encima de 50 repositorios, los nombrados por completo van primero y después los actualizados más recientemente. La lista se vuelve a leer cada hora: un repositorio nuevo aparece en la pestaña Descubrir en menos de una hora.
 
-Una sola petición lo lee todo en cada ronda: a 120 segundos, la integración usa alrededor del 1 % de los 5000 puntos por hora que GitHub concede a un token.
+Cada ronda lee los repositorios en lotes de 10, una petición por lote: con 50 repositorios a 120 segundos, la integración usa alrededor del 3 % de los 5000 puntos por hora que GitHub concede a un token.
 
 ## Uso
 

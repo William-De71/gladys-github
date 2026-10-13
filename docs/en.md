@@ -22,13 +22,13 @@ The integration reads the GitHub API (cloud): nothing else leaves your network, 
 | Field                  | Description                                                                                    |
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | Personal access token  | Required. Never shown again, never logged.                                                     |
-| Repositories to follow | `owner/name` or the github.com link, or an `owner/*` pattern, separated by commas, 20 at most. |
+| Repositories to follow | `owner/name` or the github.com link, or an `owner/*` pattern, separated by commas, 50 at most. |
 | Refresh interval (s)   | 60 to 3600, 120 by default. Also the delay of the scene triggers.                              |
 | Language of the texts  | Device names and scene summaries. Automatic: the language of your dashboard.                   |
 
-To follow every repository of an account or organization without typing them one by one, write `owner/*`, or `owner/gladys-*` for those whose name starts with `gladys-`. Forks and archived repositories are left out. Patterns mix with full names, for example `prohand/gladys-*, GladysAssistant/Gladys`. Beyond 20 repositories, those named in full come first, then the most recently updated. The list is read again every hour: a new repository shows up on the Discovery screen within the hour.
+To follow every repository of an account or organization without typing them one by one, write `owner/*`, or `owner/gladys-*` for those whose name starts with `gladys-`. Forks and archived repositories are left out. Patterns mix with full names, for example `prohand/gladys-*, GladysAssistant/Gladys`. Beyond 50 repositories, those named in full come first, then the most recently updated. The list is read again every hour: a new repository shows up on the Discovery screen within the hour.
 
-One request reads everything at each round: at 120 seconds, the integration uses about 1 % of the 5,000 points an hour GitHub grants to a token.
+Each round reads the repositories in batches of 10, one request per batch: with 50 repositories at 120 seconds, the integration uses about 3 % of the 5,000 points an hour GitHub grants to a token.
 
 ## Usage
 

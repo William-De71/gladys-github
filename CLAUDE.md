@@ -10,7 +10,8 @@ A Gladys Assistant **external integration** for GitHub: a Node.js service
 and talks to Gladys through
 [`@gladysassistant/integration-sdk`](https://github.com/GladysAssistant/integration-sdk-js),
 its only runtime dependency. It reads the GitHub GraphQL API with a personal
-access token (read-only), one request per round, and never writes to GitHub.
+access token (read-only), one request per 10 repositories each round, and
+never writes to GitHub.
 
 ## Commands
 
@@ -31,7 +32,7 @@ node .github/scripts/release.mjs next     # the version the next release would g
 ```
 index.js                SDK wiring only (new GladysIntegration + createApp)
 src/app.js              every handler, registered before connect()
-src/github-api.js       GraphQL client: one aliased query per round, error kinds
+src/github-api.js       GraphQL client: aliased queries in batches of 10, error kinds
 src/read.js             GraphQL answers -> plain snapshots
 src/watcher.js          the timer loop, snapshots, change detection
 src/tracker.js          snapshots -> scene trigger transitions (pure logic)

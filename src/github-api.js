@@ -1,12 +1,15 @@
 // -----------------------------------------------------------------------------
 // GitHub GraphQL client.
 //
-// One request per round reads everything: the authenticated account, the API
-// quota and every followed repository (one alias per repository, owner and
-// name passed as variables, never spliced into the query). A query costs
-// 1 point of the 5,000 points an hour GitHub grants to a token, whatever the
-// number of repositories (up to 20): even a 60-second interval uses about 1 %
-// of the quota.
+// A round reads the authenticated account, the API quota and every followed
+// repository (one alias per repository, owner and name passed as variables,
+// never spliced into the query), in batches of 10 repositories, one request
+// after the other. GitHub stops a query after about 10 seconds and each
+// repository adds 200 to 250 ms: a single query fails beyond 30 to 40
+// repositories, and from 15 busy ones GitHub already empties fields
+// (RESOURCE_LIMITS_EXCEEDED). A batch costs 1 point of the 5,000 points an
+// hour GitHub grants to a token: 50 repositories every 120 seconds use about
+// 3 % of the quota.
 //
 // GraphQL answers HTTP 200 with partial data when one repository is missing
 // (renamed, deleted, private without access): its alias is null and the
@@ -23,7 +26,8 @@
 
 const GRAPHQL_URL = 'https://api.github.com/graphql';
 const TIMEOUT_MS = 20000;
-const MAX_REPOSITORIES = 20;
+const MAX_REPOSITORIES = 50;
+const BATCH_SIZE = 10;
 // The newest items read per round: enough to report every issue, pull
 // request, release or commit of a busy repository between two rounds.
 const RECENT_COUNT = 5;
@@ -149,14 +153,16 @@ ${select(COMMIT_PARTS, 'commit', skipped)}
 /**
  * @description The account and quota selection.
  * @param {Set<string>} skipped - Parts left out.
+ * @param {boolean} withViewer - False to read the quota alone.
  * @returns {string} The selection.
  */
-function viewerSelection(skipped) {
-  return `
+function viewerSelection(skipped, withViewer) {
+  const viewer = `
   viewer {
     databaseId login name url
 ${select(VIEWER_PARTS, 'viewer', skipped)}
-  }
+  }`;
+  return `${withViewer ? viewer : ''}
   rateLimit { limit remaining resetAt }`;
 }
 
@@ -201,18 +207,20 @@ function isRefusal(error) {
  * @description The query reading the account and the given repositories.
  * @param {number} count - How many repositories.
  * @param {Set<string>} [skipped] - Parts left out (see `partOf`).
+ * @param {boolean} [withViewer] - False for the batches after the first one:
+ * the account is read once per round.
  * @returns {string} The GraphQL document.
  * @example
  * buildQuery(2); // -> 'query Round($o0: String!, $n0: String!, …) { … }'
  */
-function buildQuery(count, skipped = new Set()) {
+function buildQuery(count, skipped = new Set(), withViewer = true) {
   const indexes = [...Array(count).keys()];
   const params = indexes.map((i) => `$o${i}: String!, $n${i}: String!`).join(', ');
   const aliases = indexes
     .map((i) => `  r${i}: repository(owner: $o${i}, name: $n${i}) { ...repo }`)
     .join('\n');
   const head = count > 0 ? `query Round(${params})` : 'query Round';
-  return `${head} {${viewerSelection(skipped)}\n${aliases}\n}${count > 0 ? repositoryFragment(skipped) : ''}`;
+  return `${head} {${viewerSelection(skipped, withViewer)}\n${aliases}\n}${count > 0 ? repositoryFragment(skipped) : ''}`;
 }
 
 // The repositories of an account or organization, for the `owner/*` patterns:
@@ -341,8 +349,41 @@ function createGithubClient({
   }
 
   /**
-   * @description Read the account, the quota and the repositories.
-   * @param {string[]} repositories - `owner/name` strings (20 at most).
+   * @description Read one batch of repositories.
+   * @param {string[]} batch - `owner/name` strings (BATCH_SIZE at most).
+   * @param {boolean} withViewer - Whether to read the account too.
+   * @returns {Promise<{ data: object, errors: Array }>} The answer.
+   */
+  async function readBatch(batch, withViewer) {
+    // Each refused part costs one more request, once per token.
+    for (let attempt = 0; ; attempt += 1) {
+      let answer;
+      try {
+        answer = await graphql(
+          buildQuery(batch.length, skipped, withViewer),
+          buildVariables(batch),
+        );
+      } catch (err) {
+        if (
+          !(err instanceof GithubError) ||
+          err.errors.length === 0 ||
+          attempt >= MAX_SKIP_ATTEMPTS ||
+          !skipRefused(err.errors)
+        ) {
+          throw err;
+        }
+        continue;
+      }
+      if (attempt >= MAX_SKIP_ATTEMPTS || !skipRefused(answer.errors)) {
+        return answer;
+      }
+    }
+  }
+
+  /**
+   * @description Read the account, the quota and the repositories, in
+   * batches of BATCH_SIZE: one failed batch fails the round.
+   * @param {string[]} repositories - `owner/name` strings (MAX_REPOSITORIES at most).
    * @returns {Promise<{ viewer: object, rateLimit: object, repositories: Map<string, object|null>, missing: Map<string, string> }>}
    * The raw answer: each repository by its configured name, null when GitHub
    * could not resolve it (`missing` holds the reason).
@@ -353,42 +394,35 @@ function createGithubClient({
       skipped = new Set();
       skippedFor = getToken();
     }
-    let answer;
-    // Each refused part costs one more request, once per token.
-    for (let attempt = 0; !answer; attempt += 1) {
-      let errors;
-      try {
-        answer = await graphql(buildQuery(list.length, skipped), buildVariables(list));
-        ({ errors } = answer);
-      } catch (err) {
-        if (!(err instanceof GithubError) || err.errors.length === 0) {
-          throw err;
-        }
-        ({ errors } = err);
-        if (attempt >= MAX_SKIP_ATTEMPTS || !skipRefused(errors)) {
-          throw err;
-        }
-        continue;
-      }
-      if (attempt < MAX_SKIP_ATTEMPTS && skipRefused(errors)) {
-        answer = null;
-      }
+    const batches = [];
+    for (let start = 0; start < list.length; start += BATCH_SIZE) {
+      batches.push(list.slice(start, start + BATCH_SIZE));
     }
-    const { data, errors } = answer;
+    if (batches.length === 0) {
+      batches.push([]);
+    }
+    let viewer = null;
+    let rateLimit = null;
+    const found = new Map();
     const missing = new Map();
-    errors.forEach((error) => {
-      const alias = Array.isArray(error?.path) ? error.path[0] : null;
-      const match = /^r(\d+)$/.exec(String(alias ?? ''));
-      if (match && list[Number(match[1])] && !partOf(error.path)) {
-        missing.set(list[Number(match[1])], error.type ?? 'ERROR');
+    // One after the other: GitHub asks clients not to send concurrent requests.
+    for (const [index, batch] of batches.entries()) {
+      const { data, errors } = await readBatch(batch, index === 0);
+      if (index === 0) {
+        viewer = data.viewer ?? null;
       }
-    });
-    return {
-      viewer: data.viewer ?? null,
-      rateLimit: data.rateLimit ?? null,
-      repositories: new Map(list.map((full, i) => [full, data[`r${i}`] ?? null])),
-      missing,
-    };
+      // The last batch holds the freshest quota.
+      rateLimit = data.rateLimit ?? rateLimit;
+      batch.forEach((full, i) => found.set(full, data[`r${i}`] ?? null));
+      errors.forEach((error) => {
+        const alias = Array.isArray(error?.path) ? error.path[0] : null;
+        const match = /^r(\d+)$/.exec(String(alias ?? ''));
+        if (match && batch[Number(match[1])] && !partOf(error.path)) {
+          missing.set(batch[Number(match[1])], error.type ?? 'ERROR');
+        }
+      });
+    }
+    return { viewer, rateLimit, repositories: found, missing };
   }
 
   /**
@@ -456,6 +490,7 @@ function buildUserAgent({ name, version, homepage }) {
 export {
   GRAPHQL_URL,
   MAX_REPOSITORIES,
+  BATCH_SIZE,
   RECENT_COUNT,
   GithubError,
   buildQuery,
