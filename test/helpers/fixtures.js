@@ -153,7 +153,8 @@ export function response(status, body, headers = {}) {
 
 /**
  * @description A fake GitHub GraphQL endpoint: answers from a map of
- * `owner/name` -> raw repository (null = NOT_FOUND).
+ * `owner/name` -> raw repository (null = NOT_FOUND). The owners of the
+ * `owner/*` patterns list the repositories of that map.
  * @param {Function} getRepos - `() => ({ 'owner/name': raw | null })`.
  * @returns {Function & { calls: object[] }} The fetch.
  */
@@ -166,6 +167,14 @@ export function githubApi(getRepos) {
       return response(401, { message: 'Bad credentials' });
     }
     const repos = getRepos();
+    if (body.query.startsWith('query Owner')) {
+      const owner = body.variables.login.toLowerCase();
+      const nodes = Object.keys(repos)
+        .filter((full) => repos[full] && full.split('/')[0].toLowerCase() === owner)
+        .map((full) => ({ nameWithOwner: full, isArchived: false }));
+      const repositoryOwner = nodes.length ? { repositories: { nodes, pageInfo: {} } } : null;
+      return response(200, { data: { repositoryOwner } });
+    }
     const data = { viewer: RAW_VIEWER, rateLimit: RAW_RATE_LIMIT };
     const errors = [];
     Object.keys(body.variables)

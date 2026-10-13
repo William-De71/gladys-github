@@ -19,12 +19,14 @@ L'intégration interroge l'API de GitHub (cloud) : rien d'autre ne sort de votre
 2. Ouvrez **Intégrations → GitHub**, collez le jeton et listez les dépôts à suivre.
 3. Enregistrez, puis cliquez sur **Tester la connexion** : elle affiche votre compte, le quota d'API restant et les dépôts lus.
 
-| Champ                     | Description                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------- |
-| Jeton d'accès personnel   | Obligatoire. Jamais réaffiché, jamais écrit dans les journaux.                              |
-| Dépôts à suivre           | `propriétaire/nom` ou le lien github.com, séparés par des virgules, 20 au maximum.          |
-| Intervalle de lecture (s) | De 60 à 3600, 120 par défaut. C'est aussi le délai des déclencheurs de scène.               |
-| Langue des textes         | Noms des appareils et résumés des scènes. Automatique : la langue de votre tableau de bord. |
+| Champ                     | Description                                                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Jeton d'accès personnel   | Obligatoire. Jamais réaffiché, jamais écrit dans les journaux.                                                   |
+| Dépôts à suivre           | `propriétaire/nom` ou le lien github.com, ou un motif `propriétaire/*`, séparés par des virgules, 20 au maximum. |
+| Intervalle de lecture (s) | De 60 à 3600, 120 par défaut. C'est aussi le délai des déclencheurs de scène.                                    |
+| Langue des textes         | Noms des appareils et résumés des scènes. Automatique : la langue de votre tableau de bord.                      |
+
+Pour suivre tous les dépôts d'un compte ou d'une organisation sans les saisir un par un, écrivez `propriétaire/*`, ou `propriétaire/gladys-*` pour ceux dont le nom commence par `gladys-`. Les forks et les dépôts archivés sont ignorés. Les motifs se combinent avec des noms complets, par exemple `prohand/gladys-*, GladysAssistant/Gladys`. Au-delà de 20 dépôts, les dépôts nommés en entier passent en premier, puis les plus récemment mis à jour. La liste est relue toutes les heures : un nouveau dépôt apparaît dans la Découverte dans l'heure.
 
 Une seule requête lit tout à chaque passage : à 120 secondes, l'intégration utilise environ 1 % des 5 000 points par heure que GitHub accorde à un jeton.
 

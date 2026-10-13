@@ -19,12 +19,14 @@ Die Integration liest die GitHub-API (Cloud): Sonst verlässt nichts dein Netzwe
 2. Öffne **Integrationen → GitHub**, füge das Token ein und liste die zu verfolgenden Repositorys auf.
 3. Speichere und klicke dann auf **Verbindung testen**: Es zeigt dein Konto, das verbleibende API-Limit und die gelesenen Repositorys.
 
-| Feld                       | Beschreibung                                                                          |
-| -------------------------- | ------------------------------------------------------------------------------------- |
-| Persönliches Zugriffstoken | Pflichtfeld. Wird nie wieder angezeigt und nie protokolliert.                         |
-| Zu verfolgende Repositorys | `Besitzer/Name` oder der github.com-Link, durch Kommas getrennt, höchstens 20.        |
-| Abfrageintervall (s)       | 60 bis 3600, standardmäßig 120. Auch die Reaktionszeit der Szenenauslöser.            |
-| Sprache der Texte          | Gerätenamen und Szenen-Zusammenfassungen. Automatisch: die Sprache deines Dashboards. |
+| Feld                       | Beschreibung                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Persönliches Zugriffstoken | Pflichtfeld. Wird nie wieder angezeigt und nie protokolliert.                                                |
+| Zu verfolgende Repositorys | `Besitzer/Name` oder der github.com-Link, oder ein Muster `Besitzer/*`, durch Kommas getrennt, höchstens 20. |
+| Abfrageintervall (s)       | 60 bis 3600, standardmäßig 120. Auch die Reaktionszeit der Szenenauslöser.                                   |
+| Sprache der Texte          | Gerätenamen und Szenen-Zusammenfassungen. Automatisch: die Sprache deines Dashboards.                        |
+
+Um alle Repositorys eines Kontos oder einer Organisation zu verfolgen, ohne sie einzeln einzugeben, schreibe `Besitzer/*`, oder `Besitzer/gladys-*` für die, deren Name mit `gladys-` beginnt. Forks und archivierte Repositorys werden ausgelassen. Muster lassen sich mit vollständigen Namen kombinieren, zum Beispiel `prohand/gladys-*, GladysAssistant/Gladys`. Bei mehr als 20 Repositorys kommen die vollständig genannten zuerst, dann die zuletzt aktualisierten. Die Liste wird stündlich neu gelesen: Ein neues Repository erscheint innerhalb einer Stunde im Reiter Entdecken.
 
 Eine einzige Anfrage liest alles pro Runde: Bei 120 Sekunden nutzt die Integration etwa 1 % der 5.000 Punkte pro Stunde, die GitHub einem Token gewährt.
 

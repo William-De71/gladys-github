@@ -123,3 +123,15 @@ test('a refused token is reported, and a new token resets the baseline', async (
   assert.equal(gladys.fake.connectionStatus.connected, true);
   assert.equal(gladys.fake.sceneEvents.length, 0, 'first round after a token change: baseline');
 });
+
+test('an owner/* pattern offers every repository of the owner', async (t) => {
+  const { gladys, app } = await startApp({
+    config: { token: 'github_pat_test', repositories: 'octo/*' },
+  });
+  t.after(() => gladys.fake.shutdown());
+  assert.deepEqual(
+    gladys.fake.discoveredDevices.map((device) => device.external_id),
+    ['ext:test-integration:account:777', 'ext:test-integration:repository:101'],
+  );
+  assert.ok(app.watcher.peek('octo/hello'));
+});

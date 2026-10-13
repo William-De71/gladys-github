@@ -215,6 +215,20 @@ function buildQuery(count, skipped = new Set()) {
   return `${head} {${viewerSelection(skipped)}\n${aliases}\n}${count > 0 ? repositoryFragment(skipped) : ''}`;
 }
 
+// The repositories of an account or organization, for the `owner/*` patterns:
+// most recently pushed first, so the cap keeps the active ones. Forks are
+// left out (a pattern follows what the owner makes, not what they copied).
+const OWNER_QUERY = `query Owner($login: String!, $cursor: String) {
+  repositoryOwner(login: $login) {
+    repositories(first: 100, after: $cursor, isFork: false, ownerAffiliations: OWNER, orderBy: { field: PUSHED_AT, direction: DESC }) {
+      nodes { nameWithOwner isArchived }
+      pageInfo { hasNextPage endCursor }
+    }
+  }
+}`;
+// 300 repositories per owner at most: 3 points of the hourly quota.
+const MAX_OWNER_PAGES = 3;
+
 /**
  * @description The variables of the query.
  * @param {string[]} repositories - `owner/name` strings.
@@ -241,7 +255,7 @@ function buildVariables(repositories) {
  * @param {Function} options.getUserAgent - `() => string`.
  * @param {Function} [options.fetch] - fetch implementation (tests).
  * @param {Function} [options.onSkip] - `(parts: string[]) => void`, parts the token may not read.
- * @returns {{ round: Function }} The client.
+ * @returns {{ round: Function, listRepositories: Function }} The client.
  * @example
  * const github = createGithubClient({ getToken: () => token, getUserAgent: () => 'gladys-github' });
  */
@@ -378,6 +392,33 @@ function createGithubClient({
   }
 
   /**
+   * @description The repositories of an account or organization.
+   * @param {string} owner - The login.
+   * @returns {Promise<{ found: boolean, repositories: string[] }>} `owner/name`
+   * of the repositories not archived, most recently pushed first; `found` is
+   * false when GitHub knows no such owner.
+   */
+  async function listRepositories(owner) {
+    const repositories = [];
+    let cursor = null;
+    for (let page = 0; page < MAX_OWNER_PAGES; page += 1) {
+      const { data } = await graphql(OWNER_QUERY, { login: owner, cursor });
+      const connection = data.repositoryOwner?.repositories;
+      if (!connection) {
+        return { found: false, repositories };
+      }
+      (connection.nodes ?? [])
+        .filter((node) => node && !node.isArchived && typeof node.nameWithOwner === 'string')
+        .forEach((node) => repositories.push(node.nameWithOwner));
+      if (!connection.pageInfo?.hasNextPage) {
+        break;
+      }
+      cursor = connection.pageInfo.endCursor;
+    }
+    return { found: true, repositories };
+  }
+
+  /**
    * @description Leave out the parts the token was refused.
    * @param {Array} errors - The GraphQL errors.
    * @returns {boolean} True when a new part is left out (the query must run again).
@@ -398,7 +439,7 @@ function createGithubClient({
     return parts.length > 0;
   }
 
-  return { round };
+  return { round, listRepositories };
 }
 
 /**

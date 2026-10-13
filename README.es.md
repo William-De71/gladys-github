@@ -107,12 +107,12 @@ Ejemplos de escenas:
 
 ## Configuración
 
-| Campo                    | Obligatorio | Descripción                                                                       |
-| ------------------------ | ----------- | --------------------------------------------------------------------------------- |
-| Token de acceso personal | Sí          | Guardado como secreto, nunca en los registros                                     |
-| Repositorios a seguir    | No          | `propietario/nombre` o enlaces de github.com, separados por comas, 20 como máximo |
-| Intervalo de lectura (s) | No          | De 60 a 3600, 120 por defecto                                                     |
-| Idioma de los textos     | No          | Nombres de dispositivos y resúmenes de escenas; automático por defecto            |
+| Campo                    | Obligatorio | Descripción                                                                                                                          |
+| ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Token de acceso personal | Sí          | Guardado como secreto, nunca en los registros                                                                                        |
+| Repositorios a seguir    | No          | `propietario/nombre`, enlaces de github.com o patrones `propietario/*` / `propietario/prefijo*`, separados por comas, 20 como máximo |
+| Intervalo de lectura (s) | No          | De 60 a 3600, 120 por defecto                                                                                                        |
+| Idioma de los textos     | No          | Nombres de dispositivos y resúmenes de escenas; automático por defecto                                                               |
 
 **Probar la conexión** muestra la cuenta, la cuota de API restante y los repositorios leídos.
 

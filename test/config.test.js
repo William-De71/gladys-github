@@ -38,6 +38,7 @@ test('normalizes the whole config, with defaults and bounds', () => {
   assert.deepEqual(normalizeConfig(), {
     token: '',
     repositories: [],
+    patterns: [],
     pollInterval: POLL_INTERVAL.default,
     language: 'auto',
   });

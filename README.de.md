@@ -107,12 +107,12 @@ Szenen-Beispiele:
 
 ## Konfiguration
 
-| Feld                       | Pflicht | Beschreibung                                                               |
-| -------------------------- | ------- | -------------------------------------------------------------------------- |
-| Persönliches Zugriffstoken | Ja      | Als Geheimnis gespeichert, nie protokolliert                               |
-| Zu verfolgende Repositorys | Nein    | `Besitzer/Name` oder github.com-Links, durch Kommas getrennt, höchstens 20 |
-| Abfrageintervall (s)       | Nein    | 60 bis 3600, standardmäßig 120                                             |
-| Sprache der Texte          | Nein    | Gerätenamen und Szenen-Zusammenfassungen; standardmäßig automatisch        |
+| Feld                       | Pflicht | Beschreibung                                                                                                         |
+| -------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| Persönliches Zugriffstoken | Ja      | Als Geheimnis gespeichert, nie protokolliert                                                                         |
+| Zu verfolgende Repositorys | Nein    | `Besitzer/Name`, github.com-Links oder Muster `Besitzer/*` / `Besitzer/Präfix*`, durch Kommas getrennt, höchstens 20 |
+| Abfrageintervall (s)       | Nein    | 60 bis 3600, standardmäßig 120                                                                                       |
+| Sprache der Texte          | Nein    | Gerätenamen und Szenen-Zusammenfassungen; standardmäßig automatisch                                                  |
 
 **Verbindung testen** zeigt das Konto, das verbleibende API-Limit und die gelesenen Repositorys.
 

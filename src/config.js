@@ -6,6 +6,9 @@
 //                      access is enough): the GraphQL API needs one;
 //   - `repositories`   the repositories to follow, `owner/name` or their
 //                      github.com URL, separated by commas or new lines;
+//                      `owner/*` follows every repository of an account or
+//                      organization, `owner/prefix*` those whose name starts
+//                      with the prefix (see patterns.js);
 //   - `poll_interval`  how often GitHub is read, in seconds;
 //   - `language`       language of the texts Gladys does not ask for in a
 //                      language (device names, scene summaries): `auto`
@@ -24,6 +27,11 @@ const AUTO_LANGUAGE = 'auto';
 // GitHub logins: 1 to 39 letters, digits or single hyphens. Repository names:
 // letters, digits, ".", "_" and "-", 100 at most.
 const REPOSITORY_REGEX = /^([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\/([A-Za-z0-9._-]{1,100})$/;
+// `owner/*` or `owner/prefix*`: the star only at the end.
+const PATTERN_REGEX = /^([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\/([A-Za-z0-9._-]{0,99})\*$/;
+// Patterns are expanded into repositories, 20 at most in all: a few patterns
+// are plenty.
+const MAX_PATTERNS = 10;
 
 const INTERNAL_KEYS = { language: 'last_language' };
 
@@ -67,6 +75,56 @@ function parseRepository(raw) {
 }
 
 /**
+ * @description Read one pattern: `owner/*` or `owner/prefix*`, also as a
+ * github.com link.
+ * @param {string} raw - The entry.
+ * @returns {{ owner: string, prefix: string, text: string }|null} The pattern,
+ * null when the entry is not one.
+ * @example
+ * parsePattern('prohand/gladys-*'); // -> { owner: 'prohand', prefix: 'gladys-', text: 'prohand/gladys-*' }
+ */
+function parsePattern(raw) {
+  const value = raw
+    .trim()
+    .replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//i, '')
+    .replace(/\/$/, '');
+  const match = PATTERN_REGEX.exec(value);
+  return match ? { owner: match[1], prefix: match[2], text: value } : null;
+}
+
+/**
+ * @description The entries of the repositories field.
+ * @param {unknown} raw - The raw field.
+ * @returns {string[]} The entries.
+ */
+const entries = (raw) =>
+  readString(raw)
+    .split(/[\s,;]+/)
+    .filter(Boolean);
+
+/**
+ * @description Parse the patterns of the repositories field, duplicates removed.
+ * @param {unknown} raw - The raw field.
+ * @returns {Array<{ owner: string, prefix: string, text: string }>} The patterns.
+ * @example
+ * parsePatterns('octo/*, octo/a'); // -> [{ owner: 'octo', prefix: '', text: 'octo/*' }]
+ */
+function parsePatterns(raw) {
+  const seen = new Set();
+  return entries(raw)
+    .map(parsePattern)
+    .filter((pattern) => {
+      const key = pattern?.text.toLowerCase();
+      if (!pattern || seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .slice(0, MAX_PATTERNS);
+}
+
+/**
  * @description Parse the repositories field: separated by commas, semicolons,
  * spaces or new lines, invalid entries dropped, duplicates removed
  * (GitHub names are case-insensitive), capped.
@@ -78,8 +136,7 @@ function parseRepository(raw) {
 function parseRepositories(raw) {
   const seen = new Set();
   const list = [];
-  readString(raw)
-    .split(/[\s,;]+/)
+  entries(raw)
     .map(parseRepository)
     .filter(Boolean)
     .forEach((full) => {
@@ -95,7 +152,7 @@ function parseRepositories(raw) {
 /**
  * @description Normalize the raw config object from the host API.
  * @param {object} [rawConfig] - The raw config values.
- * @returns {{ token: string, repositories: string[], pollInterval: number, language: string }}
+ * @returns {{ token: string, repositories: string[], patterns: object[], pollInterval: number, language: string }}
  * The config (poll interval in seconds, language 'auto' or a language code).
  * @example
  * normalizeConfig({ token: 'github_pat_…', repositories: 'octo/hello' });
@@ -106,6 +163,7 @@ function normalizeConfig(rawConfig = {}) {
     // A token never holds spaces: a pasted one may carry a new line.
     token: readString(config.token).replace(/\s+/g, ''),
     repositories: parseRepositories(config.repositories),
+    patterns: parsePatterns(config.repositories),
     pollInterval: readNumber(config.poll_interval, POLL_INTERVAL),
     language: isLanguage(config.language) ? config.language : AUTO_LANGUAGE,
   };
@@ -131,5 +189,7 @@ export {
   normalizeConfig,
   parseRepository,
   parseRepositories,
+  parsePattern,
+  parsePatterns,
   readLanguage,
 };

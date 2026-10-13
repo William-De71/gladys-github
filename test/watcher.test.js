@@ -85,13 +85,12 @@ test('a failed round reports the error and keeps the last snapshots', async () =
 });
 
 test('prune and reset forget repositories, the account and the baseline', async () => {
-  const { watcher, state } = setup({
+  const { watcher } = setup({
     'octo/hello': rawRepository(),
     'octo/b': rawRepository({ id: 2, fullName: 'octo/b' }),
   });
   await watcher.round();
-  state.names = ['octo/b'];
-  watcher.prune();
+  watcher.prune(['octo/b']);
   assert.equal(watcher.peek('octo/hello'), null);
   assert.ok(watcher.peek('octo/b'));
   watcher.reset();

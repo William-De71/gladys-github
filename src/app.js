@@ -25,6 +25,7 @@ import { readFileSync } from 'node:fs';
 import { logger as sdkLogger } from '@gladysassistant/integration-sdk';
 import { normalizeConfig, readLanguage, INTERNAL_KEYS, AUTO_LANGUAGE } from './config.js';
 import { createGithubClient, buildUserAgent } from './github-api.js';
+import { createResolver } from './patterns.js';
 import { createWatcher } from './watcher.js';
 import {
   DEVICE_TYPES,
@@ -86,6 +87,8 @@ function createApp(
     fetch: fetchImpl,
     onSkip: (parts) => logger.warn(`Not readable with this token, left out: ${parts.join(', ')}`),
   });
+  // The followed repositories: those named in full, then the patterns' ones.
+  const followed = createResolver({ github, getConfig: () => config, now, logger });
 
   /**
    * @description Remember the language of a request, and store it when it changed.
@@ -201,7 +204,10 @@ function createApp(
    * @returns {object[]} The snapshots.
    */
   function knownRepositories() {
-    return config.repositories.map((full) => watcher.peek(full)).filter(Boolean);
+    return followed
+      .current()
+      .map((full) => watcher.peek(full))
+      .filter(Boolean);
   }
 
   /**
@@ -214,7 +220,7 @@ function createApp(
   // --- The watcher -----------------------------------------------------------------
   const watcher = createWatcher({
     github,
-    getRepositories: () => config.repositories,
+    getRepositories: () => followed.resolve(),
     isEnabled: () => Boolean(config.token),
     getIntervalMs: () => config.pollInterval * 1000,
     onRound: async ({ repos, account, accountChanged, missing }) => {
@@ -389,21 +395,27 @@ function createApp(
       return all('noToken');
     }
     let answer;
+    let repositories;
     try {
-      answer = await github.round(config.repositories);
+      repositories = await followed.resolve({ force: true });
+      answer = await github.round(repositories);
     } catch (err) {
       return errorMessage(err);
     }
     const login = answer.viewer?.login ?? '?';
     const quota = answer.rateLimit ?? {};
-    const missing = config.repositories.filter((full) => !answer.repositories.get(full));
+    const missing = repositories.filter((full) => !answer.repositories.get(full));
     const parts = [
       all('testOk', { login, remaining: quota.remaining ?? '?', limit: quota.limit ?? '?' }),
       all('testRepositories', {
-        ok: config.repositories.length - missing.length,
-        total: config.repositories.length,
+        ok: repositories.length - missing.length,
+        total: repositories.length,
       }),
     ];
+    const { matched } = followed.last();
+    if (matched > repositories.length) {
+      parts.push(all('testCapped', { matched, max: repositories.length }));
+    }
     if (missing.length > 0) {
       parts.push(all('testMissing', { missing: listMissing(missing) }));
     }
@@ -469,15 +481,15 @@ function createApp(
     const previousToken = config.token;
     await loadConfig(rawConfig);
     logger.info(
-      `Configuration updated: ${config.repositories.length} repository(ies), read every ${config.pollInterval} s`,
+      `Configuration updated: ${config.repositories.length} repository(ies), ${config.patterns.length} pattern(s), read every ${config.pollInterval} s`,
     );
     if (config.token !== previousToken) {
       // Maybe another account: start again from a fresh baseline.
       watcher.reset();
     }
-    watcher.prune();
     watcher.reschedule();
     await refreshAll();
+    watcher.prune(followed.current());
   });
 
   // --- Connection lifecycle ----------------------------------------------------------

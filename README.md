@@ -107,12 +107,12 @@ Scene examples:
 
 ## Configuration
 
-| Field                  | Required | Description                                                       |
-| ---------------------- | -------- | ----------------------------------------------------------------- |
-| Personal access token  | Yes      | Stored as a secret, never logged                                  |
-| Repositories to follow | No       | `owner/name` or github.com links, separated by commas, 20 at most |
-| Refresh interval (s)   | No       | 60 to 3600, 120 by default                                        |
-| Language of the texts  | No       | Device names and scene summaries; automatic by default            |
+| Field                  | Required | Description                                                                                             |
+| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| Personal access token  | Yes      | Stored as a secret, never logged                                                                        |
+| Repositories to follow | No       | `owner/name`, github.com links or `owner/*` / `owner/prefix*` patterns, separated by commas, 20 at most |
+| Refresh interval (s)   | No       | 60 to 3600, 120 by default                                                                              |
+| Language of the texts  | No       | Device names and scene summaries; automatic by default                                                  |
 
 **Test the connection** shows the account, the API quota left and the repositories read.
 

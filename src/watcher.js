@@ -19,7 +19,7 @@ import { readRepository, readAccount, readRateLimit } from './read.js';
  * @description Create the watcher.
  * @param {object} options - Options.
  * @param {object} options.github - The GitHub client.
- * @param {Function} options.getRepositories - `() => string[]` (`owner/name`).
+ * @param {Function} options.getRepositories - `() => string[]` (`owner/name`), or a promise of it.
  * @param {Function} options.isEnabled - `() => boolean` (a token is set).
  * @param {Function} options.getIntervalMs - `() => number`.
  * @param {Function} [options.onRound] - `(round)` after every successful read.
@@ -56,7 +56,7 @@ function createWatcher({
    * @throws {Error} When the read fails (after onError).
    */
   async function read() {
-    const repositories = getRepositories();
+    const repositories = await getRepositories();
     let answer;
     try {
       answer = await github.round(repositories);
@@ -194,9 +194,12 @@ function createWatcher({
     rateLimit: () => rateLimit,
     /** @returns {number|null} When GitHub was last read, in ms. */
     fetchedAt: () => fetchedAt,
-    /** Forget the repositories that are not followed any more. */
-    prune() {
-      const followed = new Set(getRepositories().map((name) => name.toLowerCase()));
+    /**
+     * @description Forget the repositories that are not followed any more.
+     * @param {string[]} names - The followed repositories, `owner/name`.
+     */
+    prune(names) {
+      const followed = new Set(names.map((name) => name.toLowerCase()));
       [...snapshots.keys()].forEach((key) => {
         if (!followed.has(key)) {
           snapshots.delete(key);

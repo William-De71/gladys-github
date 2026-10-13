@@ -359,6 +359,12 @@ const TEXTS = {
     de: 'Gelesene Repositorys: {ok}/{total}.',
     es: 'Repositorios leídos: {ok}/{total}.',
   },
+  testCapped: {
+    en: '{matched} repositories match, {max} are followed: those named in full, then the most recently updated.',
+    fr: '{matched} dépôts correspondent, {max} sont suivis : ceux nommés en entier, puis les plus récemment mis à jour.',
+    de: '{matched} Repositorys passen, {max} werden verfolgt: die vollständig genannten, dann die zuletzt aktualisierten.',
+    es: '{matched} repositorios coinciden, se siguen {max}: los nombrados por completo y después los actualizados más recientemente.',
+  },
   testMissing: {
     en: 'Not found or not allowed: {missing}.',
     fr: 'Introuvables ou refusés : {missing}.',

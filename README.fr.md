@@ -107,12 +107,12 @@ Exemples de scènes :
 
 ## Configuration
 
-| Champ                     | Obligatoire | Description                                                                     |
-| ------------------------- | ----------- | ------------------------------------------------------------------------------- |
-| Jeton d'accès personnel   | Oui         | Stocké comme secret, jamais journalisé                                          |
-| Dépôts à suivre           | Non         | `propriétaire/nom` ou liens github.com, séparés par des virgules, 20 au maximum |
-| Intervalle de lecture (s) | Non         | De 60 à 3600, 120 par défaut                                                    |
-| Langue des textes         | Non         | Noms des appareils et résumés des scènes ; automatique par défaut               |
+| Champ                     | Obligatoire | Description                                                                                                                        |
+| ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Jeton d'accès personnel   | Oui         | Stocké comme secret, jamais journalisé                                                                                             |
+| Dépôts à suivre           | Non         | `propriétaire/nom`, liens github.com ou motifs `propriétaire/*` / `propriétaire/préfixe*`, séparés par des virgules, 20 au maximum |
+| Intervalle de lecture (s) | Non         | De 60 à 3600, 120 par défaut                                                                                                       |
+| Langue des textes         | Non         | Noms des appareils et résumés des scènes ; automatique par défaut                                                                  |
 
 **Tester la connexion** affiche le compte, le quota d'API restant et les dépôts lus.
 
