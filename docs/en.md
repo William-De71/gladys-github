@@ -10,7 +10,7 @@ The integration reads the GitHub API (cloud): nothing else leaves your network, 
 
 ## Requirements
 
-- Gladys Assistant 5.1.0 or later.
+- Gladys Assistant 5.3.0 or later.
 - A GitHub account and a personal access token. A **fine-grained** token with the "Public repositories" access (read-only) is enough for public repositories. For private repositories, select them and grant read-only "Metadata", "Contents", "Issues", "Pull requests" and "Discussions". A classic token without any scope also works for public repositories.
 
 ## Configuration

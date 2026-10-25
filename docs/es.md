@@ -10,7 +10,7 @@ La integración consulta la API de GitHub (nube): nada más sale de tu red, y so
 
 ## Requisitos
 
-- Gladys Assistant 5.1.0 o posterior.
+- Gladys Assistant 5.3.0 o posterior.
 - Una cuenta de GitHub y un token de acceso personal. Un token **de grano fino** con el acceso «Public repositories» (solo lectura) basta para los repositorios públicos. Para repositorios privados, selecciónalos y concede en solo lectura «Metadata», «Contents», «Issues», «Pull requests» y «Discussions». Un token clásico sin ningún ámbito también funciona para los repositorios públicos.
 
 ## Configuración

@@ -27,8 +27,8 @@ test('declares the cloud transport only: GitHub is a remote API', () => {
   assert.doesNotMatch(source('../src/app.js'), /publishTransports|GLADYS_PREFER_LOCAL/);
 });
 
-test('requires the first Gladys accepting widgets and scenes', () => {
-  assert.equal(manifest.gladys_version, '>=5.1.0');
+test('requires Gladys 5.3.0, the first accepting the catalog keywords', () => {
+  assert.equal(manifest.gladys_version, '>=5.3.0');
   assert.ok(manifest.categories.length >= 1 && manifest.categories.length <= 3);
 });
 
@@ -93,4 +93,14 @@ test('offers the languages of the code, automatic by default', () => {
   const field = byKey(manifest.config_schema).get('language');
   assert.deepEqual(values(field), [AUTO_LANGUAGE, ...LANGUAGES]);
   assert.equal(field.default, AUTO_LANGUAGE);
+});
+
+test('catalog keywords and countries of Gladys 5.3.0', () => {
+  assert.equal(manifest.gladys_version, '>=5.3.0');
+  const keywords = manifest.keywords.map((keyword) => keyword.trim().toLowerCase());
+  assert.ok(keywords.length >= 1 && keywords.length <= 10, 'one to ten keywords');
+  keywords.forEach((keyword) => assert.ok(keyword.length >= 2 && keyword.length <= 30, keyword));
+  assert.equal(new Set(keywords).size, keywords.length, 'unique once trimmed and lowercased');
+  // Usable everywhere: no `countries`, the catalog shows it in every country.
+  assert.equal(manifest.countries, undefined);
 });

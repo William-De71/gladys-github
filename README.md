@@ -5,7 +5,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/William-De71/gladys-github?sort=semver)](https://github.com/William-De71/gladys-github/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/William-De71/gladys-github/release.yml?branch=main&label=CI)](https://github.com/William-De71/gladys-github/actions/workflows/release.yml)
-[![Gladys](https://img.shields.io/badge/Gladys-%E2%89%A5%205.1.0-2f6fb5)](https://gladysassistant.com)
+[![Gladys](https://img.shields.io/badge/Gladys-%E2%89%A5%205.3.0-2f6fb5)](https://gladysassistant.com)
 
 ![GitHub for Gladys Assistant](cover.jpg)
 
@@ -96,7 +96,7 @@ Scene examples:
 
 ## Requirements
 
-- Gladys Assistant **5.1.0** or later (widgets and scenes of external integrations). Older instances cannot install it.
+- Gladys Assistant **5.3.0** or later (widgets and scenes of external integrations, catalog keywords of Gladys 5.3). Older instances cannot install it.
 - A GitHub personal access token: fine-grained with "Public repositories" (read-only), or with read-only access to the chosen private repositories.
 
 ## Installation

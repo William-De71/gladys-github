@@ -10,8 +10,20 @@
   },
   "version": "0.3.1",
   "docker_image": "ghcr.io/william-de71/gladys-github:0.3.1",
-  "gladys_version": ">=5.1.0",
+  "gladys_version": ">=5.3.0",
   "categories": ["services", "notifications"],
+  "keywords": [
+    "git",
+    "repository",
+    "dépôt",
+    "release",
+    "pull request",
+    "issue",
+    "stars",
+    "ci",
+    "developer",
+    "open source"
+  ],
   "cover_image": "https://raw.githubusercontent.com/William-De71/gladys-github/main/cover.jpg",
   "transports": ["cloud"],
   "config_schema": [

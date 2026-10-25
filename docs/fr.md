@@ -10,7 +10,7 @@ L'intégration interroge l'API de GitHub (cloud) : rien d'autre ne sort de votre
 
 ## Prérequis
 
-- Gladys Assistant 5.1.0 ou plus récent.
+- Gladys Assistant 5.3.0 ou plus récent.
 - Un compte GitHub et un jeton d'accès personnel. Un jeton **à granularité fine** avec l'accès « Public repositories » (lecture seule) suffit pour les dépôts publics. Pour des dépôts privés, sélectionnez-les et accordez en lecture seule « Metadata », « Contents », « Issues », « Pull requests » et « Discussions ». Un jeton classique sans aucune portée fonctionne aussi pour les dépôts publics.
 
 ## Configuration
